@@ -1,0 +1,191 @@
+openapi: 3.1.0
+info:
+  title: business-matching-app
+  version: '1.0'
+  summary: ''
+  description: APIs
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /auth/validateSignUp:
+    post:
+      summary: Validate SignUp
+      responses:
+        '200':
+          $ref: '#/components/responses/SignUpResponse'
+        '400':
+          $ref: '#/components/responses/SignUpResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: post-auth-validate_sign_up
+      requestBody:
+        $ref: '#/components/requestBodies/SignUpInput'
+      description: validate sign up
+      tags:
+        - auth
+  /auth/signUp:
+    post:
+      summary: SignUp
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/SignUpResponse'
+        '400':
+          $ref: '#/components/responses/SignUpResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: post-auth-sign_up
+      requestBody:
+        $ref: '#/components/requestBodies/SignUpInput'
+  /auth/signIn:
+    post:
+      summary: Sign In
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/SignInOkResponse'
+        '400':
+          $ref: '#/components/responses/SignInBadRequestResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: post-auth-sign_in
+      requestBody:
+        $ref: '#/components/requestBodies/SignInInput'
+components:
+  schemas:
+    SignUpValidationError:
+      title: SignUpValidationError
+      type: object
+      properties:
+        firstName:
+          type: array
+          items:
+            type: string
+        lastName:
+          type: array
+          items:
+            type: string
+        email:
+          type: array
+          items:
+            type: string
+        password:
+          type: array
+          items:
+            type: string
+        birthday:
+          type: array
+          items:
+            type: string
+        frontIdentification:
+          type: array
+          items:
+            type: string
+        backIdentification:
+          type: array
+          items:
+            type: string
+  requestBodies:
+    SignUpInput:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - firstName
+              - lastName
+              - email
+              - password
+            properties:
+              firstName:
+                type: string
+              lastName:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              birthday:
+                type: string
+                format: date
+              frontIdentification:
+                type: string
+                format: binary
+              backIdentification:
+                type: string
+                format: binary
+      description: SignUp  Iuput
+    SignInInput:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      description: SignIn  Input
+  responses:
+    SignUpResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - errors
+            properties:
+              code:
+                type: integer
+                format: int64
+              errors:
+                type: object
+                $ref: '#/components/schemas/SignUpValidationError'
+    SignInOkResponse:
+      description: SignIn Response
+      content:
+        application/json:
+          schema:
+            type: object
+      headers:
+        Set-Cookie:
+          schema:
+            type: string
+    SignInBadRequestResponse:
+      description: SignIn BadRequest Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - errors
+            properties:
+              errors:
+                type: array
+                items:
+                  type: string
+    InternalServerErrorResponse:
+      description: Internal Server Error Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                format: int64
+              message:
+                type: string
+tags:
+  - name: auth
+    description: auth endpoint
+  - name: business matching app
+    description: business matching app

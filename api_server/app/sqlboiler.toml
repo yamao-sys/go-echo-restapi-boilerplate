@@ -1,0 +1,8 @@
+pkgname = "models"
+output = "models/generated"
+wipe = true                 # 前回生成したコードを毎回削除
+add-global-variants = false # グローバル構造体を使用する関数を生成するか
+no-tests = true             # テストコードを作成するか
+
+[mysql]
+sslmode = "false"
