@@ -16,7 +16,7 @@ func ValidateCreateTodo(input todos.PostTodosJSONRequestBody) error {
 	)
 }
 
-func ValidateUpdateTodo(input  todos.PostTodosJSONRequestBody) error {
+func ValidateUpdateTodo(input  todos.PatchTodoJSONRequestBody) error {
 	return validation.ValidateStruct(&input,
 		validation.Field(
 			&input.Title,

@@ -16,6 +16,7 @@ type TodosController interface {
 	GetTodos(ctx context.Context, request todos.GetTodosRequestObject) (todos.GetTodosResponseObject, error)
 	PostTodos(ctx context.Context, request todos.PostTodosRequestObject) (todos.PostTodosResponseObject, error)
 	GetTodo(ctx context.Context, request todos.GetTodoRequestObject) (todos.GetTodoResponseObject, error)
+	PatchTodo(ctx context.Context, request todos.PatchTodoRequestObject) (todos.PatchTodoResponseObject, error)
 }
 
 type todosController struct {
@@ -90,6 +91,37 @@ func (todosController *todosController) GetTodo(ctx context.Context, request tod
 	resTodo := todos.Todo{Id: int(todo.ID), Title: todo.Title, Content: todo.Content.String}
 	res := todos.ShowTodoResponseJSONResponse{Todo: resTodo}
 	return todos.GetTodo200JSONResponse{ShowTodoResponseJSONResponse: res}, nil
+}
+
+func (todosController *todosController) PatchTodo(ctx context.Context, request todos.PatchTodoRequestObject) (todos.PatchTodoResponseObject, error) {
+	intID, err := strconv.Atoi(request.Id)
+	if err != nil {
+		res := todos.InternalServerErrorResponseJSONResponse{Code: http.StatusInternalServerError, Message: err.Error()}
+		return todos.PatchTodo500JSONResponse{InternalServerErrorResponseJSONResponse: res}, err
+	}
+
+	userID, ok := utils.ContextValue(ctx)
+	if !ok {
+		res := todos.InternalServerErrorResponseJSONResponse{Code: http.StatusInternalServerError}
+		return todos.PatchTodo500JSONResponse{InternalServerErrorResponseJSONResponse: res}, errors.New("fail to load context value")
+	}
+
+	statusCode, err := todosController.todoService.UpdateTodo(ctx, int64(intID), *request.Body, userID)
+
+	switch statusCode {
+	case http.StatusBadRequest:
+		validationErrors := todosController.mappingValidationErrorStruct(err)
+		return todos.PatchTodo400JSONResponse{Code: http.StatusBadRequest, Errors: validationErrors}, nil
+	case http.StatusNotFound:
+		res := todos.NotFoundErrorResponseJSONResponse{Code: http.StatusNotFound}
+		return todos.PatchTodo404JSONResponse{NotFoundErrorResponseJSONResponse: res}, nil
+	case http.StatusInternalServerError:
+		res := todos.InternalServerErrorResponseJSONResponse{Code: http.StatusInternalServerError}
+		return todos.PatchTodo500JSONResponse{InternalServerErrorResponseJSONResponse: res}, err
+	}
+
+	res := todos.StoreTodoResponseJSONResponse{ Code: http.StatusOK, Errors: todos.StoreTodoValidationError{} }
+	return todos.PatchTodo200JSONResponse{StoreTodoResponseJSONResponse: res}, nil
 }
 
 func (todosController *todosController) mappingValidationErrorStruct(err error) todos.StoreTodoValidationError {

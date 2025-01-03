@@ -60,6 +60,27 @@ paths:
       description: Show Todo Schema
       tags:
         - todos
+    patch:
+      summary: Update Todo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/StoreTodoResponse'
+        '400':
+          $ref: '#/components/responses/StoreTodoResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: patch-todo
+      requestBody:
+        $ref: '#/components/requestBodies/StoreTodoInput'
+      description: Update Todo Schema
+      tags:
+        - todos
     parameters:
       - schema:
           type: string

@@ -77,8 +77,17 @@ type PostTodosJSONBody struct {
 	Title   string `json:"title"`
 }
 
+// PatchTodoJSONBody defines parameters for PatchTodo.
+type PatchTodoJSONBody struct {
+	Content string `json:"content"`
+	Title   string `json:"title"`
+}
+
 // PostTodosJSONRequestBody defines body for PostTodos for application/json ContentType.
 type PostTodosJSONRequestBody PostTodosJSONBody
+
+// PatchTodoJSONRequestBody defines body for PatchTodo for application/json ContentType.
+type PatchTodoJSONRequestBody PatchTodoJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -91,6 +100,9 @@ type ServerInterface interface {
 	// Show Todo
 	// (GET /todos/{id})
 	GetTodo(ctx echo.Context, id string) error
+	// Update Todo
+	// (PATCH /todos/{id})
+	PatchTodo(ctx echo.Context, id string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -138,6 +150,24 @@ func (w *ServerInterfaceWrapper) GetTodo(ctx echo.Context) error {
 	return err
 }
 
+// PatchTodo converts echo context to params.
+func (w *ServerInterfaceWrapper) PatchTodo(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(CookieAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PatchTodo(ctx, id)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -169,6 +199,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/todos", wrapper.GetTodos)
 	router.POST(baseURL+"/todos", wrapper.PostTodos)
 	router.GET(baseURL+"/todos/:id", wrapper.GetTodo)
+	router.PATCH(baseURL+"/todos/:id", wrapper.PatchTodo)
 
 }
 
@@ -339,6 +370,69 @@ func (response GetTodo500JSONResponse) VisitGetTodoResponse(w http.ResponseWrite
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PatchTodoRequestObject struct {
+	Id   string `json:"id"`
+	Body *PatchTodoJSONRequestBody
+}
+
+type PatchTodoResponseObject interface {
+	VisitPatchTodoResponse(w http.ResponseWriter) error
+}
+
+type PatchTodo200JSONResponse struct{ StoreTodoResponseJSONResponse }
+
+func (response PatchTodo200JSONResponse) VisitPatchTodoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchTodo400JSONResponse struct {
+	Code   int64                    `json:"code"`
+	Errors StoreTodoValidationError `json:"errors"`
+}
+
+func (response PatchTodo400JSONResponse) VisitPatchTodoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchTodo401JSONResponse struct {
+	UnauthorizedErrorResponseJSONResponse
+}
+
+func (response PatchTodo401JSONResponse) VisitPatchTodoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchTodo404JSONResponse struct {
+	NotFoundErrorResponseJSONResponse
+}
+
+func (response PatchTodo404JSONResponse) VisitPatchTodoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchTodo500JSONResponse struct {
+	InternalServerErrorResponseJSONResponse
+}
+
+func (response PatchTodo500JSONResponse) VisitPatchTodoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Fetch Todos
@@ -350,6 +444,9 @@ type StrictServerInterface interface {
 	// Show Todo
 	// (GET /todos/{id})
 	GetTodo(ctx context.Context, request GetTodoRequestObject) (GetTodoResponseObject, error)
+	// Update Todo
+	// (PATCH /todos/{id})
+	PatchTodo(ctx context.Context, request PatchTodoRequestObject) (PatchTodoResponseObject, error)
 }
 
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
@@ -435,6 +532,37 @@ func (sh *strictHandler) GetTodo(ctx echo.Context, id string) error {
 		return err
 	} else if validResponse, ok := response.(GetTodoResponseObject); ok {
 		return validResponse.VisitGetTodoResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PatchTodo operation middleware
+func (sh *strictHandler) PatchTodo(ctx echo.Context, id string) error {
+	var request PatchTodoRequestObject
+
+	request.Id = id
+
+	var body PatchTodoJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchTodo(ctx.Request().Context(), request.(PatchTodoRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchTodo")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PatchTodoResponseObject); ok {
+		return validResponse.VisitPatchTodoResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}

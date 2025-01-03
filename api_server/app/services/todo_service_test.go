@@ -121,43 +121,62 @@ func (s *TestTodoServiceSuite) TestFetchTodo_StatusNotFound() {
 	assert.Equal(s.T(), null.String{String: "", Valid: false}, todo.Content)
 }
 
-// func (s *TestTodoServiceSuite) TestUpdateTodo() {
-// 	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: user.ID}
-// 	if err := testTodo.Insert(ctx, DBCon, boil.Infer()); err != nil {
-// 		s.T().Fatalf("failed to create test todos %v", err)
-// 	}
+func (s *TestTodoServiceSuite) TestUpdateTodo_StatusOk() {
+	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: int64(user.ID)}
+	if err := testTodo.Insert(ctx, DBCon, boil.Infer()); err != nil {
+		s.T().Fatalf("failed to create test todos %v", err)
+	}
 
-// 	requestParams := dto.UpdateTodoRequest{Title: "test updated title 1", Content: "test updated content 1"}
-// 	result := testTodoService.UpdateTodo(ctx, testTodo.ID, requestParams, user.ID)
+	requestParams := todos.PatchTodoJSONRequestBody{Title: "test updated title 1", Content: "test updated content 1"}
+	statusCode, err := testTodoService.UpdateTodo(ctx, testTodo.ID, requestParams, int64(user.ID))
 
-// 	assert.Nil(s.T(), result.Error)
-// 	assert.Equal(s.T(), "", result.ErrorType)
-// 	// NOTE: TODOが更新されていることの確認
-// 	if err := testTodo.Reload(ctx, DBCon); err != nil {
-// 		s.T().Fatalf("failed to reload test todos %v", err)
-// 	}
-// 	assert.Equal(s.T(), "test updated title 1", testTodo.Title)
-// 	assert.Equal(s.T(), null.String{String: "test updated content 1", Valid: true}, testTodo.Content)
-// }
+	assert.Equal(s.T(), int64(http.StatusOK), statusCode)
+	assert.Nil(s.T(), err)
+	// NOTE: TODOが更新されていることの確認
+	if err := testTodo.Reload(ctx, DBCon); err != nil {
+		s.T().Fatalf("failed to reload test todos %v", err)
+	}
+	assert.Equal(s.T(), "test updated title 1", testTodo.Title)
+	assert.Equal(s.T(), null.String{String: "test updated content 1", Valid: true}, testTodo.Content)
+}
 
-// func (s *TestTodoServiceSuite) TestUpdateTodo_ValidationError() {
-// 	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: user.ID}
-// 	if err := testTodo.Insert(ctx, DBCon, boil.Infer()); err != nil {
-// 		s.T().Fatalf("failed to create test todos %v", err)
-// 	}
+func (s *TestTodoServiceSuite) TestUpdateTodo_ValidationError() {
+	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: int64(user.ID)}
+	if err := testTodo.Insert(ctx, DBCon, boil.Infer()); err != nil {
+		s.T().Fatalf("failed to create test todos %v", err)
+	}
 
-// 	requestParams := dto.UpdateTodoRequest{Title: "", Content: "test updated content 1"}
-// 	result := testTodoService.UpdateTodo(ctx, testTodo.ID, requestParams, user.ID)
+	requestParams := todos.PatchTodoJSONRequestBody{Title: "", Content: "test updated content 1"}
+	statusCode, err := testTodoService.UpdateTodo(ctx, testTodo.ID, requestParams, int64(user.ID))
 
-// 	assert.NotNil(s.T(), result.Error)
-// 	assert.Equal(s.T(), "validationError", result.ErrorType)
-// 	// NOTE: Todoが更新されていないこと
-// 	if err := testTodo.Reload(ctx, DBCon); err != nil {
-// 		s.T().Fatalf("failed to reload test todos %v", err)
-// 	}
-// 	assert.Equal(s.T(), "test title 1", testTodo.Title)
-// 	assert.Equal(s.T(), null.String{String: "test content 1", Valid: true}, testTodo.Content)
-// }
+	assert.Contains(s.T(), err.Error(), "タイトルは必須入力です。")
+	assert.Equal(s.T(), int64(http.StatusBadRequest), statusCode)
+	// NOTE: Todoが更新されていないこと
+	if err := testTodo.Reload(ctx, DBCon); err != nil {
+		s.T().Fatalf("failed to reload test todos %v", err)
+	}
+	assert.Equal(s.T(), "test title 1", testTodo.Title)
+	assert.Equal(s.T(), null.String{String: "test content 1", Valid: true}, testTodo.Content)
+}
+
+func (s *TestTodoServiceSuite) TestUpdateTodo_NotFound() {
+	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: int64(user.ID)}
+	if err := testTodo.Insert(ctx, DBCon, boil.Infer()); err != nil {
+		s.T().Fatalf("failed to create test todos %v", err)
+	}
+
+	requestParams := todos.PatchTodoJSONRequestBody{Title: "test updated title 1", Content: "test updated content 1"}
+	statusCode, err := testTodoService.UpdateTodo(ctx, testTodo.ID + 1, requestParams, int64(user.ID))
+
+	assert.Equal(s.T(), int64(http.StatusNotFound), statusCode)
+	assert.NotNil(s.T(), err)
+	// NOTE: TODOが更新されていないことの確認
+	if err := testTodo.Reload(ctx, DBCon); err != nil {
+		s.T().Fatalf("failed to reload test todos %v", err)
+	}
+	assert.Equal(s.T(), "test title 1", testTodo.Title)
+	assert.Equal(s.T(), null.String{String: "test content 1", Valid: true}, testTodo.Content)
+}
 
 // func (s *TestTodoServiceSuite) TestDeleteTodo() {
 // 	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: user.ID}
