@@ -109,10 +109,10 @@ openapi 配下にドメインに応じたパスでスキーマを作成する
 
 - api_server/app/openapi
   - todos
-		- todo.yaml
+    - todo.yaml
 ```
 
-スキーマを生成したら Go の API のスキーマと型ファイルを生成する
+スキーマを生成したら Go の API のボイラーコードと型ファイルを生成する
 
 ```
 make gen-schema DOMAIN=todos
