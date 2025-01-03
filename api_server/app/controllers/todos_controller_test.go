@@ -342,6 +342,69 @@ func (s *testTodosControllerSuite) TestPatchTodo_StatusNotFound() {
 	assert.Equal(s.T(), null.String{String: "test content 1", Valid: true}, todo.Content)
 }
 
+func (s *testTodosControllerSuite) TestDeleteTodo_StatusOk() {
+	s.SignIn()
+
+	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
+	todo := factories.TodoFactory.MustCreateWithOption(todoParam).(*models.Todo)
+	if err := todo.Insert(ctx, DBCon, boil.Infer()); err != nil {
+		s.T().Fatalf("failed to create test todo %v", err)
+	}
+
+	e := echo.New()
+
+	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
+	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
+	todos.RegisterHandlers(e, strictHandler)
+
+	result := testutil.NewRequest().Delete("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token).GoWithHTTPHandler(s.T(), e)
+	assert.Equal(s.T(), http.StatusOK, result.Code())
+
+	var res todos.DeleteTodo200JSONResponse
+	result.UnmarshalBodyToObject(&res)
+	
+	assert.Equal(s.T(), int64(http.StatusOK), res.Code)
+	assert.Equal(s.T(), true, res.Result)
+
+	// NOTE: TODOリストが削除されていることを確認
+	err := todo.Reload(ctx, DBCon)
+	assert.NotNil(s.T(), err)
+}
+
+func (s *testTodosControllerSuite) TestDeleteTodo_StatusUnauthorized() {
+	e := echo.New()
+
+	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
+	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
+	todos.RegisterHandlers(e, strictHandler)
+
+	result := testutil.NewRequest().Delete("/todos/1").GoWithHTTPHandler(s.T(), e)
+	assert.Equal(s.T(), http.StatusUnauthorized, result.Code())
+}
+
+func (s *testTodosControllerSuite) TestDeleteTodo_StatusNotFound() {
+	s.SignIn()
+
+	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
+	todo := factories.TodoFactory.MustCreateWithOption(todoParam).(*models.Todo)
+	if err := todo.Insert(ctx, DBCon, boil.Infer()); err != nil {
+		s.T().Fatalf("failed to create test todo %v", err)
+	}
+	
+	e := echo.New()
+
+	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
+	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
+	todos.RegisterHandlers(e, strictHandler)
+	
+	result := testutil.NewRequest().Delete("/todos/"+strconv.Itoa(int(todo.ID + 1))).WithHeader("Cookie", token).GoWithHTTPHandler(s.T(), e)
+	assert.Equal(s.T(), http.StatusNotFound, result.Code())
+
+	// NOTE: TODOリストが削除されていないことを確認
+	err := todo.Reload(ctx, DBCon)
+	assert.Nil(s.T(), err)
+}
+
 func TestTodosController(t *testing.T) {
 	// テストスイートを実施
 	suite.Run(t, new(testTodosControllerSuite))

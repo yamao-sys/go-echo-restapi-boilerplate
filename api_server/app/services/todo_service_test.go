@@ -178,20 +178,35 @@ func (s *TestTodoServiceSuite) TestUpdateTodo_NotFound() {
 	assert.Equal(s.T(), null.String{String: "test content 1", Valid: true}, testTodo.Content)
 }
 
-// func (s *TestTodoServiceSuite) TestDeleteTodo() {
-// 	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: user.ID}
-// 	if err := testTodo.Insert(ctx, DBCon, boil.Infer()); err != nil {
-// 		s.T().Fatalf("failed to create test todos %v", err)
-// 	}
+func (s *TestTodoServiceSuite) TestDeleteTodo_StatusOk() {
+	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: int64(user.ID)}
+	if err := testTodo.Insert(ctx, DBCon, boil.Infer()); err != nil {
+		s.T().Fatalf("failed to create test todos %v", err)
+	}
 
-// 	result := testTodoService.DeleteTodo(ctx, testTodo.ID, user.ID)
+	statusCode, deleteErr := testTodoService.DeleteTodo(ctx, testTodo.ID, int64(user.ID))
 
-// 	assert.Nil(s.T(), result.Error)
-// 	assert.Equal(s.T(), "", result.ErrorType)
-// 	// NOTE: TODOが削除されていることの確認
-// 	err := testTodo.Reload(ctx, DBCon)
-// 	assert.NotNil(s.T(), err)
-// }
+	assert.Equal(s.T(), int64(http.StatusOK), statusCode)
+	assert.Nil(s.T(), deleteErr)
+	// NOTE: TODOが削除されていることの確認
+	err := testTodo.Reload(ctx, DBCon)
+	assert.NotNil(s.T(), err)
+}
+
+func (s *TestTodoServiceSuite) TestDeleteTodo_NotFound() {
+	testTodo := models.Todo{Title: "test title 1", Content: null.String{String: "test content 1", Valid: true}, UserID: int64(user.ID)}
+	if err := testTodo.Insert(ctx, DBCon, boil.Infer()); err != nil {
+		s.T().Fatalf("failed to create test todos %v", err)
+	}
+
+	statusCode, deleteErr := testTodoService.DeleteTodo(ctx, testTodo.ID + 1, int64(user.ID))
+
+	assert.Equal(s.T(), int64(http.StatusNotFound), statusCode)
+	assert.NotNil(s.T(), deleteErr)
+	// NOTE: TODOが削除されていないことの確認
+	err := testTodo.Reload(ctx, DBCon)
+	assert.Nil(s.T(), err)
+}
 
 func TestTodoService(t *testing.T) {
 	// テストスイートを実行

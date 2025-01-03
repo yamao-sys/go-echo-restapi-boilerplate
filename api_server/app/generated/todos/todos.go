@@ -31,6 +31,12 @@ type Todo struct {
 	Title   string `json:"title"`
 }
 
+// DeleteTodoResponse defines model for DeleteTodoResponse.
+type DeleteTodoResponse struct {
+	Code   int64 `json:"code"`
+	Result bool  `json:"result"`
+}
+
 // FetchTodosResponse defines model for FetchTodosResponse.
 type FetchTodosResponse struct {
 	Todos []Todo `json:"todos"`
@@ -97,6 +103,9 @@ type ServerInterface interface {
 	// Create Todo
 	// (POST /todos)
 	PostTodos(ctx echo.Context) error
+	// Delete Todo
+	// (DELETE /todos/{id})
+	DeleteTodo(ctx echo.Context, id string) error
 	// Show Todo
 	// (GET /todos/{id})
 	GetTodo(ctx echo.Context, id string) error
@@ -129,6 +138,24 @@ func (w *ServerInterfaceWrapper) PostTodos(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostTodos(ctx)
+	return err
+}
+
+// DeleteTodo converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteTodo(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(CookieAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteTodo(ctx, id)
 	return err
 }
 
@@ -198,9 +225,15 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/todos", wrapper.GetTodos)
 	router.POST(baseURL+"/todos", wrapper.PostTodos)
+	router.DELETE(baseURL+"/todos/:id", wrapper.DeleteTodo)
 	router.GET(baseURL+"/todos/:id", wrapper.GetTodo)
 	router.PATCH(baseURL+"/todos/:id", wrapper.PatchTodo)
 
+}
+
+type DeleteTodoResponseJSONResponse struct {
+	Code   int64 `json:"code"`
+	Result bool  `json:"result"`
 }
 
 type FetchTodosResponseJSONResponse struct {
@@ -314,6 +347,56 @@ type PostTodos500JSONResponse struct {
 }
 
 func (response PostTodos500JSONResponse) VisitPostTodosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTodoRequestObject struct {
+	Id string `json:"id"`
+}
+
+type DeleteTodoResponseObject interface {
+	VisitDeleteTodoResponse(w http.ResponseWriter) error
+}
+
+type DeleteTodo200JSONResponse struct{ DeleteTodoResponseJSONResponse }
+
+func (response DeleteTodo200JSONResponse) VisitDeleteTodoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTodo401JSONResponse struct {
+	UnauthorizedErrorResponseJSONResponse
+}
+
+func (response DeleteTodo401JSONResponse) VisitDeleteTodoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTodo404JSONResponse struct {
+	NotFoundErrorResponseJSONResponse
+}
+
+func (response DeleteTodo404JSONResponse) VisitDeleteTodoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTodo500JSONResponse struct {
+	InternalServerErrorResponseJSONResponse
+}
+
+func (response DeleteTodo500JSONResponse) VisitDeleteTodoResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -441,6 +524,9 @@ type StrictServerInterface interface {
 	// Create Todo
 	// (POST /todos)
 	PostTodos(ctx context.Context, request PostTodosRequestObject) (PostTodosResponseObject, error)
+	// Delete Todo
+	// (DELETE /todos/{id})
+	DeleteTodo(ctx context.Context, request DeleteTodoRequestObject) (DeleteTodoResponseObject, error)
 	// Show Todo
 	// (GET /todos/{id})
 	GetTodo(ctx context.Context, request GetTodoRequestObject) (GetTodoResponseObject, error)
@@ -507,6 +593,31 @@ func (sh *strictHandler) PostTodos(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(PostTodosResponseObject); ok {
 		return validResponse.VisitPostTodosResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeleteTodo operation middleware
+func (sh *strictHandler) DeleteTodo(ctx echo.Context, id string) error {
+	var request DeleteTodoRequestObject
+
+	request.Id = id
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteTodo(ctx.Request().Context(), request.(DeleteTodoRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteTodo")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeleteTodoResponseObject); ok {
+		return validResponse.VisitDeleteTodoResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}

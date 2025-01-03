@@ -81,6 +81,23 @@ paths:
       description: Update Todo Schema
       tags:
         - todos
+    delete:
+      summary: Delete Todo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/DeleteTodoResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: delete-todo
+      description: Delete Todo Schema
+      tags:
+        - todos
     parameters:
       - schema:
           type: string
@@ -177,6 +194,21 @@ components:
               errors:
                 type: object
                 $ref: '#/components/schemas/StoreTodoValidationError'
+    DeleteTodoResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - result
+            properties:
+              code:
+                type: integer
+                format: int64
+              result:
+                type: boolean
     UnauthorizedErrorResponse:
       description: Unauthorized Error Response
       content:

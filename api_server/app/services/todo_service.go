@@ -18,7 +18,7 @@ type TodoService interface {
 	FetchTodosList(ctx context.Context, userID int64) (statusCode int64, todosList *models.TodoSlice, err error)
 	ShowTodo(ctx context.Context, id int64, userID int64) (statusCode int64, todo *models.Todo)
 	UpdateTodo(ctx context.Context, id int64, requestParams todos.PatchTodoJSONRequestBody, userID int64) (statusCode int64, err error)
-	// DeleteTodo(ctx context.Context, id int, userID int) *dto.DeleteTodoResponse
+	DeleteTodo(ctx context.Context, id int64, userID int64) (statusCode int64, err error)
 }
 
 type todoService struct {
@@ -89,15 +89,15 @@ func (ts *todoService) UpdateTodo(ctx context.Context, id int64, requestParams t
 	return http.StatusOK, nil
 }
 
-// func (ts *todoService) DeleteTodo(ctx context.Context, id int, userID int) *dto.DeleteTodoResponse {
-// 	todo, error := models.Todos(qm.Where("id = ? AND user_id = ?", id, userID)).One(ctx, ts.db)
-// 	if error != nil {
-// 		return &dto.DeleteTodoResponse{Error: error, ErrorType: "notFound"}
-// 	}
+func (ts *todoService) DeleteTodo(ctx context.Context, id int64, userID int64) (statusCode int64, err error) {
+	todo, err := models.Todos(qm.Where("id = ? AND user_id = ?", id, userID)).One(ctx, ts.db)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
 
-// 	_, deleteError := todo.Delete(ctx, ts.db)
-// 	if deleteError != nil {
-// 		return &dto.DeleteTodoResponse{Error: deleteError, ErrorType: "internalServerError"}
-// 	}
-// 	return &dto.DeleteTodoResponse{Error: nil, ErrorType: ""}
-// }
+	_, deleteError := todo.Delete(ctx, ts.db)
+	if deleteError != nil {
+		return http.StatusInternalServerError, deleteError
+	}
+	return http.StatusOK, nil
+}

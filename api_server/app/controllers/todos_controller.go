@@ -17,6 +17,7 @@ type TodosController interface {
 	PostTodos(ctx context.Context, request todos.PostTodosRequestObject) (todos.PostTodosResponseObject, error)
 	GetTodo(ctx context.Context, request todos.GetTodoRequestObject) (todos.GetTodoResponseObject, error)
 	PatchTodo(ctx context.Context, request todos.PatchTodoRequestObject) (todos.PatchTodoResponseObject, error)
+	DeleteTodo(ctx context.Context, request todos.DeleteTodoRequestObject) (todos.DeleteTodoResponseObject, error)
 }
 
 type todosController struct {
@@ -122,6 +123,34 @@ func (todosController *todosController) PatchTodo(ctx context.Context, request t
 
 	res := todos.StoreTodoResponseJSONResponse{ Code: http.StatusOK, Errors: todos.StoreTodoValidationError{} }
 	return todos.PatchTodo200JSONResponse{StoreTodoResponseJSONResponse: res}, nil
+}
+
+func (todosController *todosController) DeleteTodo(ctx context.Context, request todos.DeleteTodoRequestObject) (todos.DeleteTodoResponseObject, error) {
+	intID, err := strconv.Atoi(request.Id)
+	if err != nil {
+		res := todos.InternalServerErrorResponseJSONResponse{Code: http.StatusInternalServerError, Message: err.Error()}
+		return todos.DeleteTodo500JSONResponse{InternalServerErrorResponseJSONResponse: res}, err
+	}
+
+	userID, ok := utils.ContextValue(ctx)
+	if !ok {
+		res := todos.InternalServerErrorResponseJSONResponse{Code: http.StatusInternalServerError}
+		return todos.DeleteTodo500JSONResponse{InternalServerErrorResponseJSONResponse: res}, errors.New("fail to load context value")
+	}
+
+	statusCode, err := todosController.todoService.DeleteTodo(ctx, int64(intID), userID)
+
+	switch statusCode {
+	case http.StatusNotFound:
+		res := todos.NotFoundErrorResponseJSONResponse{Code: http.StatusNotFound}
+		return todos.DeleteTodo404JSONResponse{NotFoundErrorResponseJSONResponse: res}, nil
+	case http.StatusInternalServerError:
+		res := todos.InternalServerErrorResponseJSONResponse{Code: http.StatusInternalServerError}
+		return todos.DeleteTodo500JSONResponse{InternalServerErrorResponseJSONResponse: res}, err
+	}
+
+	res := todos.DeleteTodoResponseJSONResponse{ Code: http.StatusOK, Result: true }
+	return todos.DeleteTodo200JSONResponse{DeleteTodoResponseJSONResponse: res}, nil
 }
 
 func (todosController *todosController) mappingValidationErrorStruct(err error) todos.StoreTodoValidationError {
