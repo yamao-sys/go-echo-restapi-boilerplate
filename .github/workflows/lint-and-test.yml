@@ -90,13 +90,9 @@ jobs:
       - name: Add GCS to /etc/hosts
         run: echo "127.0.0.1 gcs" | sudo tee -a /etc/hosts
 
-      - name: Setup test database
-        working-directory: ./api_server/app/db
-        run: godotenv -f /app/.env.test sql-migrate up -env="mysql"
-
       - name: test
         working-directory: ./api_server/app
-        run: godotenv -f /app/.env.test go test -v ./...
+        run: make test-ci
 
       - name: Build
         working-directory: ./api_server/app
