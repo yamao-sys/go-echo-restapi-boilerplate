@@ -9,6 +9,7 @@ Go Echo の REST API のボイラープレート
 - sql-migrate
 - echo
 - oapi-codegen
+- air
 - ozzo-validation
 - godotenv
 - go-txdb
