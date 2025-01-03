@@ -138,7 +138,10 @@ make gen-schema DOMAIN=todos
   - 事故があるとまずい機能については、C2 カバレッジで書いても良さそう
 
 ## テスト実行
+### テスト用DBの作成・マイグレーション
+dbコンテナのホストにログインし、DB名`go_echo_restapi_boilerplate_test`で作成する
 
+### テスト実行
 api_server コンテナに入った上で、以下のコマンドを実行
 
 ```
