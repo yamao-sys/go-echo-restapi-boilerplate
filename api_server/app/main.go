@@ -10,11 +10,14 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+	loadEnv()
+
 	dbCon := db.Init()
 
 	// NOTE: service層のインスタンス化
@@ -40,4 +43,12 @@ func main() {
 	todos.RegisterHandlers(e, todosStrictHandler)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
+}
+
+func loadEnv() {
+	envFilePath := os.Getenv("ENV_FILE_PATH")
+	if envFilePath == "" {
+		envFilePath = ".env"
+	}
+	godotenv.Load(envFilePath)
 }
