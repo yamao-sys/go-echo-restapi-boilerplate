@@ -1,0 +1,208 @@
+openapi: 3.1.0
+info:
+  title: todos
+  version: '1.0'
+  summary: ''
+  description: todos APIs
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /todos:
+    post:
+      summary: Create Todo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/StoreTodoResponse'
+        '400':
+          $ref: '#/components/responses/StoreTodoResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: post-todos
+      requestBody:
+        $ref: '#/components/requestBodies/StoreTodoInput'
+      description: Create Todo Schema
+      tags:
+        - todos
+    get:
+      summary: Fetch Todos
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/FetchTodosResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: get-todos
+      description: Fetch Todos Schema
+      tags:
+        - todos
+  '/todos/{id}':
+    get:
+      summary: Show Todo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/ShowTodoResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: get-todo
+      description: Show Todo Schema
+      tags:
+        - todos
+    parameters:
+      - schema:
+          type: string
+        in: path
+        name: id
+        required: true
+components:
+  securitySchemes:
+    cookieAuth:
+      description: Session Auth
+      type: apiKey
+      in: cookie
+      name: token
+  schemas:
+    Todo:
+      title: Todo Object
+      type: object
+      required:
+        - id
+        - title
+        - content
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+    StoreTodoValidationError:
+      title: StoreTodoValidationError
+      type: object
+      properties:
+        title:
+          type: array
+          items:
+            type: string
+        content:
+          type: array
+          items:
+            type: string
+  requestBodies:
+    StoreTodoInput:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - title
+              - content
+            properties:
+              title:
+                type: string
+              content:
+                type: string
+      description: Todo Iuput
+  responses:
+    FetchTodosResponse:
+      description: 'Fetch Todos Response'
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - todos
+            properties:
+              todos:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todo'
+    ShowTodoResponse:
+      description: 'Show Todo Response'
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - todo
+            properties:
+              todo:
+                $ref: '#/components/schemas/Todo'
+    StoreTodoResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - errors
+            properties:
+              code:
+                type: integer
+                format: int64
+              errors:
+                type: object
+                $ref: '#/components/schemas/StoreTodoValidationError'
+    UnauthorizedErrorResponse:
+      description: Unauthorized Error Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                format: int64
+              message:
+                type: string
+    NotFoundErrorResponse:
+      description: Not Found Error Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                format: int64
+              message:
+                type: string
+    InternalServerErrorResponse:
+      description: Internal Server Error Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                format: int64
+              message:
+                type: string
+tags:
+  - name: todos
+    description: todos endpoint
+  - name: go echo restapi boilderplate
+    description: go echo restapi boilderplate

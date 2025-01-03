@@ -2,11 +2,18 @@ package controllers
 
 import (
 	"app/db"
+	"app/generated/auth"
+	models "app/models/generated"
+	"app/services"
+	"app/test/factories"
 	"context"
 	"database/sql"
 
 	"github.com/DATA-DOG/go-txdb"
+	"github.com/labstack/echo/v4"
+	"github.com/oapi-codegen/testutil"
 	"github.com/stretchr/testify/suite"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type WithDBSuite struct {
@@ -16,7 +23,8 @@ type WithDBSuite struct {
 var (
 	DBCon *sql.DB
 	ctx   context.Context
-	// token string
+	user *models.User
+	token string
 )
 
 // func (s *WithDBSuite) SetupSuite()                           {} // テストスイート実施前の処理
@@ -43,24 +51,25 @@ func (s *WithDBSuite) CloseDB() {
 	DBCon.Close()
 }
 
-// func (s *WithDBSuite) SignIn() {
-// 	authService := services.NewAuthService(DBCon)
-// 	authController := NewAuthController(authService)
+func (s *WithDBSuite) SignIn() {
+	authService := services.NewAuthService(DBCon)
+	authController := NewAuthController(authService)
 
-// 	// recorderの初期化
-// 	authRecorder := httptest.NewRecorder()
+	// NOTE: テスト用ユーザの作成
+	user = factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
+	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
+		s.T().Fatalf("failed to create test user %v", err)
+	}
+	e := echo.New()
 
-// 	// NOTE: リクエストの生成
-// 	signUpRequestBody := bytes.NewBufferString("{\"name\":\"test name 1\",\"email\":\"test@example.com\",\"password\":\"password\"}")
-// 	req := httptest.NewRequest(http.MethodPost, "/auth/sign_up", signUpRequestBody)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	strictHandler := auth.NewStrictHandler(authController, nil)
+	auth.RegisterHandlers(e, strictHandler)
 
-// 	// echoによるWebサーバの設定
-// 	echoServer := echo.New()
-// 	c := echoServer.NewContext(req, authRecorder)
-// 	c.SetPath("auth/sign_up")
+	reqBody := auth.SignInInput{
+		Email: "test@example.com",
+		Password: "password",
+	}
+	result := testutil.NewRequest().Post("/auth/signIn").WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 
-// 	// NOTE: ログインし、tokenに認証情報を格納
-// 	authController.SignIn(c)
-// 	token = authRecorder.Result().Cookies()[0].Value
-// }
+	token = result.Recorder.Result().Header.Values("Set-Cookie")[0]
+}
