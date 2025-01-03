@@ -372,7 +372,7 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithEmptyBirthday() 
 
 func (s *TestAuthControllerSuite) TestPostAuthSignIn_StatusOk() {
 	// NOTE: テスト用ユーザの作成
-	user := factories.Factory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
+	user := factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
 	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
@@ -395,7 +395,7 @@ func (s *TestAuthControllerSuite) TestPostAuthSignIn_StatusOk() {
 
 func (s *TestAuthControllerSuite) TestPostAuthSignIn_BadRequest() {
 	// NOTE: テスト用ユーザの作成
-	user := factories.Factory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
+	user := factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
 	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test user %v", err)
 	}

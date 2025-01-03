@@ -116,8 +116,7 @@ func (as *authService) SignIn(ctx context.Context, requestParams auth.PostAuthSi
 		"user_id": user.ID,
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
-	// TODO: JWT_SECRETを環境変数に切り出す
-	tokenString, err = token.SignedString([]byte("abcdefghijklmn"))
+	tokenString, err = token.SignedString([]byte(os.Getenv("JWT_TOKEN_KEY")))
 	if err != nil {
 		return http.StatusInternalServerError, "", err
 	}

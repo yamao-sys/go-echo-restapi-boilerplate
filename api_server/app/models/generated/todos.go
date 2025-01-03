@@ -22,89 +22,69 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-// User is an object representing the database table.
-type User struct {
-	ID                  int       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	FirstName           string    `boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
-	LastName            string    `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
-	Email               string    `boil:"email" json:"email" toml:"email" yaml:"email"`
-	Password            string    `boil:"password" json:"password" toml:"password" yaml:"password"`
-	Birthday            null.Time `boil:"birthday" json:"birthday,omitempty" toml:"birthday" yaml:"birthday,omitempty"`
-	FrontIdentification string    `boil:"front_identification" json:"front_identification" toml:"front_identification" yaml:"front_identification"`
-	BackIdentification  string    `boil:"back_identification" json:"back_identification" toml:"back_identification" yaml:"back_identification"`
-	CreatedAt           time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt           time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+// Todo is an object representing the database table.
+type Todo struct {
+	ID        int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID    int64       `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	Title     string      `boil:"title" json:"title" toml:"title" yaml:"title"`
+	Content   null.String `boil:"content" json:"content,omitempty" toml:"content" yaml:"content,omitempty"`
+	CreatedAt time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
-	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *todoR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L todoL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var UserColumns = struct {
-	ID                  string
-	FirstName           string
-	LastName            string
-	Email               string
-	Password            string
-	Birthday            string
-	FrontIdentification string
-	BackIdentification  string
-	CreatedAt           string
-	UpdatedAt           string
+var TodoColumns = struct {
+	ID        string
+	UserID    string
+	Title     string
+	Content   string
+	CreatedAt string
+	UpdatedAt string
 }{
-	ID:                  "id",
-	FirstName:           "first_name",
-	LastName:            "last_name",
-	Email:               "email",
-	Password:            "password",
-	Birthday:            "birthday",
-	FrontIdentification: "front_identification",
-	BackIdentification:  "back_identification",
-	CreatedAt:           "created_at",
-	UpdatedAt:           "updated_at",
+	ID:        "id",
+	UserID:    "user_id",
+	Title:     "title",
+	Content:   "content",
+	CreatedAt: "created_at",
+	UpdatedAt: "updated_at",
 }
 
-var UserTableColumns = struct {
-	ID                  string
-	FirstName           string
-	LastName            string
-	Email               string
-	Password            string
-	Birthday            string
-	FrontIdentification string
-	BackIdentification  string
-	CreatedAt           string
-	UpdatedAt           string
+var TodoTableColumns = struct {
+	ID        string
+	UserID    string
+	Title     string
+	Content   string
+	CreatedAt string
+	UpdatedAt string
 }{
-	ID:                  "users.id",
-	FirstName:           "users.first_name",
-	LastName:            "users.last_name",
-	Email:               "users.email",
-	Password:            "users.password",
-	Birthday:            "users.birthday",
-	FrontIdentification: "users.front_identification",
-	BackIdentification:  "users.back_identification",
-	CreatedAt:           "users.created_at",
-	UpdatedAt:           "users.updated_at",
+	ID:        "todos.id",
+	UserID:    "todos.user_id",
+	Title:     "todos.title",
+	Content:   "todos.content",
+	CreatedAt: "todos.created_at",
+	UpdatedAt: "todos.updated_at",
 }
 
 // Generated where
 
-type whereHelperint struct{ field string }
+type whereHelperint64 struct{ field string }
 
-func (w whereHelperint) EQ(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperint) NEQ(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperint) LT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperint) LTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperint) GT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperint) GTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperint) IN(slice []int) qm.QueryMod {
+func (w whereHelperint64) EQ(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperint64) NEQ(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperint64) LT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperint64) LTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperint64) GT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperint64) GTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperint64) IN(slice []int64) qm.QueryMod {
 	values := make([]interface{}, 0, len(slice))
 	for _, value := range slice {
 		values = append(values, value)
 	}
 	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
 }
-func (w whereHelperint) NIN(slice []int) qm.QueryMod {
+func (w whereHelperint64) NIN(slice []int64) qm.QueryMod {
 	values := make([]interface{}, 0, len(slice))
 	for _, value := range slice {
 		values = append(values, value)
@@ -112,77 +92,134 @@ func (w whereHelperint) NIN(slice []int) qm.QueryMod {
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
-var UserWhere = struct {
-	ID                  whereHelperint
-	FirstName           whereHelperstring
-	LastName            whereHelperstring
-	Email               whereHelperstring
-	Password            whereHelperstring
-	Birthday            whereHelpernull_Time
-	FrontIdentification whereHelperstring
-	BackIdentification  whereHelperstring
-	CreatedAt           whereHelpertime_Time
-	UpdatedAt           whereHelpertime_Time
-}{
-	ID:                  whereHelperint{field: "`users`.`id`"},
-	FirstName:           whereHelperstring{field: "`users`.`first_name`"},
-	LastName:            whereHelperstring{field: "`users`.`last_name`"},
-	Email:               whereHelperstring{field: "`users`.`email`"},
-	Password:            whereHelperstring{field: "`users`.`password`"},
-	Birthday:            whereHelpernull_Time{field: "`users`.`birthday`"},
-	FrontIdentification: whereHelperstring{field: "`users`.`front_identification`"},
-	BackIdentification:  whereHelperstring{field: "`users`.`back_identification`"},
-	CreatedAt:           whereHelpertime_Time{field: "`users`.`created_at`"},
-	UpdatedAt:           whereHelpertime_Time{field: "`users`.`updated_at`"},
+type whereHelpernull_String struct{ field string }
+
+func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelpernull_String) LIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" LIKE ?", x)
+}
+func (w whereHelpernull_String) NLIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" NOT LIKE ?", x)
+}
+func (w whereHelpernull_String) IN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
-// UserRels is where relationship names are stored.
-var UserRels = struct {
+func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
+type whereHelpertime_Time struct{ field string }
+
+func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+var TodoWhere = struct {
+	ID        whereHelperint64
+	UserID    whereHelperint64
+	Title     whereHelperstring
+	Content   whereHelpernull_String
+	CreatedAt whereHelpertime_Time
+	UpdatedAt whereHelpertime_Time
+}{
+	ID:        whereHelperint64{field: "`todos`.`id`"},
+	UserID:    whereHelperint64{field: "`todos`.`user_id`"},
+	Title:     whereHelperstring{field: "`todos`.`title`"},
+	Content:   whereHelpernull_String{field: "`todos`.`content`"},
+	CreatedAt: whereHelpertime_Time{field: "`todos`.`created_at`"},
+	UpdatedAt: whereHelpertime_Time{field: "`todos`.`updated_at`"},
+}
+
+// TodoRels is where relationship names are stored.
+var TodoRels = struct {
 }{}
 
-// userR is where relationships are stored.
-type userR struct {
+// todoR is where relationships are stored.
+type todoR struct {
 }
 
 // NewStruct creates a new relationship struct
-func (*userR) NewStruct() *userR {
-	return &userR{}
+func (*todoR) NewStruct() *todoR {
+	return &todoR{}
 }
 
-// userL is where Load methods for each relationship are stored.
-type userL struct{}
+// todoL is where Load methods for each relationship are stored.
+type todoL struct{}
 
 var (
-	userAllColumns            = []string{"id", "first_name", "last_name", "email", "password", "birthday", "front_identification", "back_identification", "created_at", "updated_at"}
-	userColumnsWithoutDefault = []string{"first_name", "last_name", "email", "password", "birthday", "front_identification", "back_identification", "created_at", "updated_at"}
-	userColumnsWithDefault    = []string{"id"}
-	userPrimaryKeyColumns     = []string{"id"}
-	userGeneratedColumns      = []string{}
+	todoAllColumns            = []string{"id", "user_id", "title", "content", "created_at", "updated_at"}
+	todoColumnsWithoutDefault = []string{"user_id", "title", "content", "created_at", "updated_at"}
+	todoColumnsWithDefault    = []string{"id"}
+	todoPrimaryKeyColumns     = []string{"id"}
+	todoGeneratedColumns      = []string{}
 )
 
 type (
-	// UserSlice is an alias for a slice of pointers to User.
-	// This should almost always be used instead of []User.
-	UserSlice []*User
-	// UserHook is the signature for custom User hook methods
-	UserHook func(context.Context, boil.ContextExecutor, *User) error
+	// TodoSlice is an alias for a slice of pointers to Todo.
+	// This should almost always be used instead of []Todo.
+	TodoSlice []*Todo
+	// TodoHook is the signature for custom Todo hook methods
+	TodoHook func(context.Context, boil.ContextExecutor, *Todo) error
 
-	userQuery struct {
+	todoQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	userType                 = reflect.TypeOf(&User{})
-	userMapping              = queries.MakeStructMapping(userType)
-	userPrimaryKeyMapping, _ = queries.BindMapping(userType, userMapping, userPrimaryKeyColumns)
-	userInsertCacheMut       sync.RWMutex
-	userInsertCache          = make(map[string]insertCache)
-	userUpdateCacheMut       sync.RWMutex
-	userUpdateCache          = make(map[string]updateCache)
-	userUpsertCacheMut       sync.RWMutex
-	userUpsertCache          = make(map[string]insertCache)
+	todoType                 = reflect.TypeOf(&Todo{})
+	todoMapping              = queries.MakeStructMapping(todoType)
+	todoPrimaryKeyMapping, _ = queries.BindMapping(todoType, todoMapping, todoPrimaryKeyColumns)
+	todoInsertCacheMut       sync.RWMutex
+	todoInsertCache          = make(map[string]insertCache)
+	todoUpdateCacheMut       sync.RWMutex
+	todoUpdateCache          = make(map[string]updateCache)
+	todoUpsertCacheMut       sync.RWMutex
+	todoUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -193,36 +230,36 @@ var (
 	_ = qmhelper.Where
 )
 
-var userAfterSelectMu sync.Mutex
-var userAfterSelectHooks []UserHook
+var todoAfterSelectMu sync.Mutex
+var todoAfterSelectHooks []TodoHook
 
-var userBeforeInsertMu sync.Mutex
-var userBeforeInsertHooks []UserHook
-var userAfterInsertMu sync.Mutex
-var userAfterInsertHooks []UserHook
+var todoBeforeInsertMu sync.Mutex
+var todoBeforeInsertHooks []TodoHook
+var todoAfterInsertMu sync.Mutex
+var todoAfterInsertHooks []TodoHook
 
-var userBeforeUpdateMu sync.Mutex
-var userBeforeUpdateHooks []UserHook
-var userAfterUpdateMu sync.Mutex
-var userAfterUpdateHooks []UserHook
+var todoBeforeUpdateMu sync.Mutex
+var todoBeforeUpdateHooks []TodoHook
+var todoAfterUpdateMu sync.Mutex
+var todoAfterUpdateHooks []TodoHook
 
-var userBeforeDeleteMu sync.Mutex
-var userBeforeDeleteHooks []UserHook
-var userAfterDeleteMu sync.Mutex
-var userAfterDeleteHooks []UserHook
+var todoBeforeDeleteMu sync.Mutex
+var todoBeforeDeleteHooks []TodoHook
+var todoAfterDeleteMu sync.Mutex
+var todoAfterDeleteHooks []TodoHook
 
-var userBeforeUpsertMu sync.Mutex
-var userBeforeUpsertHooks []UserHook
-var userAfterUpsertMu sync.Mutex
-var userAfterUpsertHooks []UserHook
+var todoBeforeUpsertMu sync.Mutex
+var todoBeforeUpsertHooks []TodoHook
+var todoAfterUpsertMu sync.Mutex
+var todoAfterUpsertHooks []TodoHook
 
 // doAfterSelectHooks executes all "after Select" hooks.
-func (o *User) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userAfterSelectHooks {
+	for _, hook := range todoAfterSelectHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -232,12 +269,12 @@ func (o *User) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor
 }
 
 // doBeforeInsertHooks executes all "before insert" hooks.
-func (o *User) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userBeforeInsertHooks {
+	for _, hook := range todoBeforeInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -247,12 +284,12 @@ func (o *User) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecuto
 }
 
 // doAfterInsertHooks executes all "after Insert" hooks.
-func (o *User) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userAfterInsertHooks {
+	for _, hook := range todoAfterInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -262,12 +299,12 @@ func (o *User) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor
 }
 
 // doBeforeUpdateHooks executes all "before Update" hooks.
-func (o *User) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userBeforeUpdateHooks {
+	for _, hook := range todoBeforeUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -277,12 +314,12 @@ func (o *User) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecuto
 }
 
 // doAfterUpdateHooks executes all "after Update" hooks.
-func (o *User) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userAfterUpdateHooks {
+	for _, hook := range todoAfterUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -292,12 +329,12 @@ func (o *User) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor
 }
 
 // doBeforeDeleteHooks executes all "before Delete" hooks.
-func (o *User) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userBeforeDeleteHooks {
+	for _, hook := range todoBeforeDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -307,12 +344,12 @@ func (o *User) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecuto
 }
 
 // doAfterDeleteHooks executes all "after Delete" hooks.
-func (o *User) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userAfterDeleteHooks {
+	for _, hook := range todoAfterDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -322,12 +359,12 @@ func (o *User) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor
 }
 
 // doBeforeUpsertHooks executes all "before Upsert" hooks.
-func (o *User) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userBeforeUpsertHooks {
+	for _, hook := range todoBeforeUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -337,12 +374,12 @@ func (o *User) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecuto
 }
 
 // doAfterUpsertHooks executes all "after Upsert" hooks.
-func (o *User) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *Todo) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range userAfterUpsertHooks {
+	for _, hook := range todoAfterUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -351,51 +388,51 @@ func (o *User) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor
 	return nil
 }
 
-// AddUserHook registers your hook function for all future operations.
-func AddUserHook(hookPoint boil.HookPoint, userHook UserHook) {
+// AddTodoHook registers your hook function for all future operations.
+func AddTodoHook(hookPoint boil.HookPoint, todoHook TodoHook) {
 	switch hookPoint {
 	case boil.AfterSelectHook:
-		userAfterSelectMu.Lock()
-		userAfterSelectHooks = append(userAfterSelectHooks, userHook)
-		userAfterSelectMu.Unlock()
+		todoAfterSelectMu.Lock()
+		todoAfterSelectHooks = append(todoAfterSelectHooks, todoHook)
+		todoAfterSelectMu.Unlock()
 	case boil.BeforeInsertHook:
-		userBeforeInsertMu.Lock()
-		userBeforeInsertHooks = append(userBeforeInsertHooks, userHook)
-		userBeforeInsertMu.Unlock()
+		todoBeforeInsertMu.Lock()
+		todoBeforeInsertHooks = append(todoBeforeInsertHooks, todoHook)
+		todoBeforeInsertMu.Unlock()
 	case boil.AfterInsertHook:
-		userAfterInsertMu.Lock()
-		userAfterInsertHooks = append(userAfterInsertHooks, userHook)
-		userAfterInsertMu.Unlock()
+		todoAfterInsertMu.Lock()
+		todoAfterInsertHooks = append(todoAfterInsertHooks, todoHook)
+		todoAfterInsertMu.Unlock()
 	case boil.BeforeUpdateHook:
-		userBeforeUpdateMu.Lock()
-		userBeforeUpdateHooks = append(userBeforeUpdateHooks, userHook)
-		userBeforeUpdateMu.Unlock()
+		todoBeforeUpdateMu.Lock()
+		todoBeforeUpdateHooks = append(todoBeforeUpdateHooks, todoHook)
+		todoBeforeUpdateMu.Unlock()
 	case boil.AfterUpdateHook:
-		userAfterUpdateMu.Lock()
-		userAfterUpdateHooks = append(userAfterUpdateHooks, userHook)
-		userAfterUpdateMu.Unlock()
+		todoAfterUpdateMu.Lock()
+		todoAfterUpdateHooks = append(todoAfterUpdateHooks, todoHook)
+		todoAfterUpdateMu.Unlock()
 	case boil.BeforeDeleteHook:
-		userBeforeDeleteMu.Lock()
-		userBeforeDeleteHooks = append(userBeforeDeleteHooks, userHook)
-		userBeforeDeleteMu.Unlock()
+		todoBeforeDeleteMu.Lock()
+		todoBeforeDeleteHooks = append(todoBeforeDeleteHooks, todoHook)
+		todoBeforeDeleteMu.Unlock()
 	case boil.AfterDeleteHook:
-		userAfterDeleteMu.Lock()
-		userAfterDeleteHooks = append(userAfterDeleteHooks, userHook)
-		userAfterDeleteMu.Unlock()
+		todoAfterDeleteMu.Lock()
+		todoAfterDeleteHooks = append(todoAfterDeleteHooks, todoHook)
+		todoAfterDeleteMu.Unlock()
 	case boil.BeforeUpsertHook:
-		userBeforeUpsertMu.Lock()
-		userBeforeUpsertHooks = append(userBeforeUpsertHooks, userHook)
-		userBeforeUpsertMu.Unlock()
+		todoBeforeUpsertMu.Lock()
+		todoBeforeUpsertHooks = append(todoBeforeUpsertHooks, todoHook)
+		todoBeforeUpsertMu.Unlock()
 	case boil.AfterUpsertHook:
-		userAfterUpsertMu.Lock()
-		userAfterUpsertHooks = append(userAfterUpsertHooks, userHook)
-		userAfterUpsertMu.Unlock()
+		todoAfterUpsertMu.Lock()
+		todoAfterUpsertHooks = append(todoAfterUpsertHooks, todoHook)
+		todoAfterUpsertMu.Unlock()
 	}
 }
 
-// One returns a single user record from the query.
-func (q userQuery) One(ctx context.Context, exec boil.ContextExecutor) (*User, error) {
-	o := &User{}
+// One returns a single todo record from the query.
+func (q todoQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Todo, error) {
+	o := &Todo{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -404,7 +441,7 @@ func (q userQuery) One(ctx context.Context, exec boil.ContextExecutor) (*User, e
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for users")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for todos")
 	}
 
 	if err := o.doAfterSelectHooks(ctx, exec); err != nil {
@@ -414,16 +451,16 @@ func (q userQuery) One(ctx context.Context, exec boil.ContextExecutor) (*User, e
 	return o, nil
 }
 
-// All returns all User records from the query.
-func (q userQuery) All(ctx context.Context, exec boil.ContextExecutor) (UserSlice, error) {
-	var o []*User
+// All returns all Todo records from the query.
+func (q todoQuery) All(ctx context.Context, exec boil.ContextExecutor) (TodoSlice, error) {
+	var o []*Todo
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to User slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to Todo slice")
 	}
 
-	if len(userAfterSelectHooks) != 0 {
+	if len(todoAfterSelectHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterSelectHooks(ctx, exec); err != nil {
 				return o, err
@@ -434,8 +471,8 @@ func (q userQuery) All(ctx context.Context, exec boil.ContextExecutor) (UserSlic
 	return o, nil
 }
 
-// Count returns the count of all User records in the query.
-func (q userQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all Todo records in the query.
+func (q todoQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -443,14 +480,14 @@ func (q userQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64,
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count users rows")
+		return 0, errors.Wrap(err, "models: failed to count todos rows")
 	}
 
 	return count, nil
 }
 
 // Exists checks if the row exists in the table.
-func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q todoQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -459,58 +496,58 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if users exists")
+		return false, errors.Wrap(err, "models: failed to check if todos exists")
 	}
 
 	return count > 0, nil
 }
 
-// Users retrieves all the records using an executor.
-func Users(mods ...qm.QueryMod) userQuery {
-	mods = append(mods, qm.From("`users`"))
+// Todos retrieves all the records using an executor.
+func Todos(mods ...qm.QueryMod) todoQuery {
+	mods = append(mods, qm.From("`todos`"))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`users`.*"})
+		queries.SetSelect(q, []string{"`todos`.*"})
 	}
 
-	return userQuery{q}
+	return todoQuery{q}
 }
 
-// FindUser retrieves a single record by ID with an executor.
+// FindTodo retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindUser(ctx context.Context, exec boil.ContextExecutor, iD int, selectCols ...string) (*User, error) {
-	userObj := &User{}
+func FindTodo(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*Todo, error) {
+	todoObj := &Todo{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `users` where `id`=?", sel,
+		"select %s from `todos` where `id`=?", sel,
 	)
 
 	q := queries.Raw(query, iD)
 
-	err := q.Bind(ctx, exec, userObj)
+	err := q.Bind(ctx, exec, todoObj)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from users")
+		return nil, errors.Wrap(err, "models: unable to select from todos")
 	}
 
-	if err = userObj.doAfterSelectHooks(ctx, exec); err != nil {
-		return userObj, err
+	if err = todoObj.doAfterSelectHooks(ctx, exec); err != nil {
+		return todoObj, err
 	}
 
-	return userObj, nil
+	return todoObj, nil
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *Todo) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no users provided for insertion")
+		return errors.New("models: no todos provided for insertion")
 	}
 
 	var err error
@@ -529,39 +566,39 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(userColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(todoColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	userInsertCacheMut.RLock()
-	cache, cached := userInsertCache[key]
-	userInsertCacheMut.RUnlock()
+	todoInsertCacheMut.RLock()
+	cache, cached := todoInsertCache[key]
+	todoInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			userAllColumns,
-			userColumnsWithDefault,
-			userColumnsWithoutDefault,
+			todoAllColumns,
+			todoColumnsWithDefault,
+			todoColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(userType, userMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(todoType, todoMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(userType, userMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(todoType, todoMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `users` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO `todos` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `users` () VALUES ()%s%s"
+			cache.query = "INSERT INTO `todos` () VALUES ()%s%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `users` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, userPrimaryKeyColumns))
+			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `todos` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, todoPrimaryKeyColumns))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -578,7 +615,7 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	result, err := exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into users")
+		return errors.Wrap(err, "models: unable to insert into todos")
 	}
 
 	var lastID int64
@@ -593,8 +630,8 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		return ErrSyncFail
 	}
 
-	o.ID = int(lastID)
-	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == userMapping["id"] {
+	o.ID = int64(lastID)
+	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == todoMapping["id"] {
 		goto CacheNoHooks
 	}
 
@@ -609,23 +646,23 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	}
 	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to populate default values for users")
+		return errors.Wrap(err, "models: unable to populate default values for todos")
 	}
 
 CacheNoHooks:
 	if !cached {
-		userInsertCacheMut.Lock()
-		userInsertCache[key] = cache
-		userInsertCacheMut.Unlock()
+		todoInsertCacheMut.Lock()
+		todoInsertCache[key] = cache
+		todoInsertCacheMut.Unlock()
 	}
 
 	return o.doAfterInsertHooks(ctx, exec)
 }
 
-// Update uses an executor to update the User.
+// Update uses an executor to update the Todo.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o *Todo) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
@@ -637,28 +674,28 @@ func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns bo
 		return 0, err
 	}
 	key := makeCacheKey(columns, nil)
-	userUpdateCacheMut.RLock()
-	cache, cached := userUpdateCache[key]
-	userUpdateCacheMut.RUnlock()
+	todoUpdateCacheMut.RLock()
+	cache, cached := todoUpdateCache[key]
+	todoUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			userAllColumns,
-			userPrimaryKeyColumns,
+			todoAllColumns,
+			todoPrimaryKeyColumns,
 		)
 
 		if !columns.IsWhitelist() {
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("models: unable to update users, could not build whitelist")
+			return 0, errors.New("models: unable to update todos, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `users` SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE `todos` SET %s WHERE %s",
 			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, userPrimaryKeyColumns),
+			strmangle.WhereClause("`", "`", 0, todoPrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(userType, userMapping, append(wl, userPrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(todoType, todoMapping, append(wl, todoPrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -674,42 +711,42 @@ func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns bo
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update users row")
+		return 0, errors.Wrap(err, "models: unable to update todos row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by update for users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by update for todos")
 	}
 
 	if !cached {
-		userUpdateCacheMut.Lock()
-		userUpdateCache[key] = cache
-		userUpdateCacheMut.Unlock()
+		todoUpdateCacheMut.Lock()
+		todoUpdateCache[key] = cache
+		todoUpdateCacheMut.Unlock()
 	}
 
 	return rowsAff, o.doAfterUpdateHooks(ctx, exec)
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q userQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (q todoQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	queries.SetUpdate(q.Query, cols)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all for users")
+		return 0, errors.Wrap(err, "models: unable to update all for todos")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for users")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for todos")
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o UserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (o TodoSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	ln := int64(len(o))
 	if ln == 0 {
 		return 0, nil
@@ -731,13 +768,13 @@ func (o UserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), userPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), todoPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `users` SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE `todos` SET %s WHERE %s",
 		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, userPrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, todoPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -746,26 +783,25 @@ func (o UserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all in user slice")
+		return 0, errors.Wrap(err, "models: unable to update all in todo slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all user")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all todo")
 	}
 	return rowsAff, nil
 }
 
-var mySQLUserUniqueColumns = []string{
+var mySQLTodoUniqueColumns = []string{
 	"id",
-	"email",
 }
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *Todo) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no users provided for upsert")
+		return errors.New("models: no todos provided for upsert")
 	}
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
@@ -780,8 +816,8 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(userColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLUserUniqueColumns, o)
+	nzDefaults := queries.NonZeroDefaultSet(todoColumnsWithDefault, o)
+	nzUniques := queries.NonZeroDefaultSet(mySQLTodoUniqueColumns, o)
 
 	if len(nzUniques) == 0 {
 		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
@@ -809,44 +845,44 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
-	userUpsertCacheMut.RLock()
-	cache, cached := userUpsertCache[key]
-	userUpsertCacheMut.RUnlock()
+	todoUpsertCacheMut.RLock()
+	cache, cached := todoUpsertCache[key]
+	todoUpsertCacheMut.RUnlock()
 
 	var err error
 
 	if !cached {
 		insert, _ := insertColumns.InsertColumnSet(
-			userAllColumns,
-			userColumnsWithDefault,
-			userColumnsWithoutDefault,
+			todoAllColumns,
+			todoColumnsWithDefault,
+			todoColumnsWithoutDefault,
 			nzDefaults,
 		)
 
 		update := updateColumns.UpdateColumnSet(
-			userAllColumns,
-			userPrimaryKeyColumns,
+			todoAllColumns,
+			todoPrimaryKeyColumns,
 		)
 
 		if !updateColumns.IsNone() && len(update) == 0 {
-			return errors.New("models: unable to upsert users, could not build update column list")
+			return errors.New("models: unable to upsert todos, could not build update column list")
 		}
 
-		ret := strmangle.SetComplement(userAllColumns, strmangle.SetIntersect(insert, update))
+		ret := strmangle.SetComplement(todoAllColumns, strmangle.SetIntersect(insert, update))
 
-		cache.query = buildUpsertQueryMySQL(dialect, "`users`", update, insert)
+		cache.query = buildUpsertQueryMySQL(dialect, "`todos`", update, insert)
 		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `users` WHERE %s",
+			"SELECT %s FROM `todos` WHERE %s",
 			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
 			strmangle.WhereClause("`", "`", 0, nzUniques),
 		)
 
-		cache.valueMapping, err = queries.BindMapping(userType, userMapping, insert)
+		cache.valueMapping, err = queries.BindMapping(todoType, todoMapping, insert)
 		if err != nil {
 			return err
 		}
 		if len(ret) != 0 {
-			cache.retMapping, err = queries.BindMapping(userType, userMapping, ret)
+			cache.retMapping, err = queries.BindMapping(todoType, todoMapping, ret)
 			if err != nil {
 				return err
 			}
@@ -868,7 +904,7 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	result, err := exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert for users")
+		return errors.Wrap(err, "models: unable to upsert for todos")
 	}
 
 	var lastID int64
@@ -884,14 +920,14 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 		return ErrSyncFail
 	}
 
-	o.ID = int(lastID)
-	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == userMapping["id"] {
+	o.ID = int64(lastID)
+	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == todoMapping["id"] {
 		goto CacheNoHooks
 	}
 
-	uniqueMap, err = queries.BindMapping(userType, userMapping, nzUniques)
+	uniqueMap, err = queries.BindMapping(todoType, todoMapping, nzUniques)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to retrieve unique values for users")
+		return errors.Wrap(err, "models: unable to retrieve unique values for todos")
 	}
 	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
 
@@ -902,32 +938,32 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	}
 	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to populate default values for users")
+		return errors.Wrap(err, "models: unable to populate default values for todos")
 	}
 
 CacheNoHooks:
 	if !cached {
-		userUpsertCacheMut.Lock()
-		userUpsertCache[key] = cache
-		userUpsertCacheMut.Unlock()
+		todoUpsertCacheMut.Lock()
+		todoUpsertCache[key] = cache
+		todoUpsertCacheMut.Unlock()
 	}
 
 	return o.doAfterUpsertHooks(ctx, exec)
 }
 
-// Delete deletes a single User record with an executor.
+// Delete deletes a single Todo record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *User) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o *Todo) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if o == nil {
-		return 0, errors.New("models: no User provided for delete")
+		return 0, errors.New("models: no Todo provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(ctx, exec); err != nil {
 		return 0, err
 	}
 
-	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), userPrimaryKeyMapping)
-	sql := "DELETE FROM `users` WHERE `id`=?"
+	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), todoPrimaryKeyMapping)
+	sql := "DELETE FROM `todos` WHERE `id`=?"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -936,12 +972,12 @@ func (o *User) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, er
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete from users")
+		return 0, errors.Wrap(err, "models: unable to delete from todos")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for todos")
 	}
 
 	if err := o.doAfterDeleteHooks(ctx, exec); err != nil {
@@ -952,33 +988,33 @@ func (o *User) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, er
 }
 
 // DeleteAll deletes all matching rows.
-func (q userQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (q todoQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if q.Query == nil {
-		return 0, errors.New("models: no userQuery provided for delete all")
+		return 0, errors.New("models: no todoQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from users")
+		return 0, errors.Wrap(err, "models: unable to delete all from todos")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for todos")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o UserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o TodoSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
-	if len(userBeforeDeleteHooks) != 0 {
+	if len(todoBeforeDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doBeforeDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -988,12 +1024,12 @@ func (o UserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (in
 
 	var args []interface{}
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), userPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), todoPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `users` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, userPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM `todos` WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, todoPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1002,15 +1038,15 @@ func (o UserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (in
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from user slice")
+		return 0, errors.Wrap(err, "models: unable to delete all from todo slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for todos")
 	}
 
-	if len(userAfterDeleteHooks) != 0 {
+	if len(todoAfterDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1023,8 +1059,8 @@ func (o UserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (in
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *User) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindUser(ctx, exec, o.ID)
+func (o *Todo) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindTodo(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -1035,26 +1071,26 @@ func (o *User) Reload(ctx context.Context, exec boil.ContextExecutor) error {
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *UserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *TodoSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := UserSlice{}
+	slice := TodoSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), userPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), todoPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `users`.* FROM `users` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, userPrimaryKeyColumns, len(*o))
+	sql := "SELECT `todos`.* FROM `todos` WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, todoPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in UserSlice")
+		return errors.Wrap(err, "models: unable to reload all in TodoSlice")
 	}
 
 	*o = slice
@@ -1062,10 +1098,10 @@ func (o *UserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 	return nil
 }
 
-// UserExists checks if the User row exists.
-func UserExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
+// TodoExists checks if the Todo row exists.
+func TodoExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `users` where `id`=? limit 1)"
+	sql := "select exists(select 1 from `todos` where `id`=? limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1076,35 +1112,35 @@ func UserExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, e
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if users exists")
+		return false, errors.Wrap(err, "models: unable to check if todos exists")
 	}
 
 	return exists, nil
 }
 
-// Exists checks if the User row exists.
-func (o *User) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
-	return UserExists(ctx, exec, o.ID)
+// Exists checks if the Todo row exists.
+func (o *Todo) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+	return TodoExists(ctx, exec, o.ID)
 }
 
 // /////////////////////////////// BEGIN EXTENSIONS /////////////////////////////////
 // Expose table columns
 var (
-	UserAllColumns            = userAllColumns
-	UserColumnsWithoutDefault = userColumnsWithoutDefault
-	UserColumnsWithDefault    = userColumnsWithDefault
-	UserPrimaryKeyColumns     = userPrimaryKeyColumns
-	UserGeneratedColumns      = userGeneratedColumns
+	TodoAllColumns            = todoAllColumns
+	TodoColumnsWithoutDefault = todoColumnsWithoutDefault
+	TodoColumnsWithDefault    = todoColumnsWithDefault
+	TodoPrimaryKeyColumns     = todoPrimaryKeyColumns
+	TodoGeneratedColumns      = todoGeneratedColumns
 )
 
 // GetID get ID from model object
-func (o *User) GetID() int {
+func (o *Todo) GetID() int64 {
 	return o.ID
 }
 
 // GetIDs extract IDs from model objects
-func (s UserSlice) GetIDs() []int {
-	result := make([]int, len(s))
+func (s TodoSlice) GetIDs() []int64 {
+	result := make([]int64, len(s))
 	for i := range s {
 		result[i] = s[i].ID
 	}
@@ -1112,7 +1148,7 @@ func (s UserSlice) GetIDs() []int {
 }
 
 // GetIntfIDs extract IDs from model objects as interface slice
-func (s UserSlice) GetIntfIDs() []interface{} {
+func (s TodoSlice) GetIntfIDs() []interface{} {
 	result := make([]interface{}, len(s))
 	for i := range s {
 		result[i] = s[i].ID
@@ -1121,8 +1157,8 @@ func (s UserSlice) GetIntfIDs() []interface{} {
 }
 
 // ToIDMap convert a slice of model objects to a map with ID as key
-func (s UserSlice) ToIDMap() map[int]*User {
-	result := make(map[int]*User, len(s))
+func (s TodoSlice) ToIDMap() map[int64]*Todo {
+	result := make(map[int64]*Todo, len(s))
 	for _, o := range s {
 		result[o.ID] = o
 	}
@@ -1130,9 +1166,9 @@ func (s UserSlice) ToIDMap() map[int]*User {
 }
 
 // ToUniqueItems construct a slice of unique items from the given slice
-func (s UserSlice) ToUniqueItems() UserSlice {
-	result := make(UserSlice, 0, len(s))
-	mapChk := make(map[int]struct{}, len(s))
+func (s TodoSlice) ToUniqueItems() TodoSlice {
+	result := make(TodoSlice, 0, len(s))
+	mapChk := make(map[int64]struct{}, len(s))
 	for i := len(s) - 1; i >= 0; i-- {
 		o := s[i]
 		if _, ok := mapChk[o.ID]; !ok {
@@ -1144,7 +1180,7 @@ func (s UserSlice) ToUniqueItems() UserSlice {
 }
 
 // FindItemByID find item by ID in the slice
-func (s UserSlice) FindItemByID(id int) *User {
+func (s TodoSlice) FindItemByID(id int64) *Todo {
 	for _, o := range s {
 		if o.ID == id {
 			return o
@@ -1155,11 +1191,11 @@ func (s UserSlice) FindItemByID(id int) *User {
 
 // FindMissingItemIDs find all item IDs that are not in the list
 // NOTE: the input ID slice should contain unique values
-func (s UserSlice) FindMissingItemIDs(expectedIDs []int) []int {
+func (s TodoSlice) FindMissingItemIDs(expectedIDs []int64) []int64 {
 	if len(s) == 0 {
 		return expectedIDs
 	}
-	result := []int{}
+	result := []int64{}
 	mapChk := s.ToIDMap()
 	for _, id := range expectedIDs {
 		if _, ok := mapChk[id]; !ok {
@@ -1171,7 +1207,7 @@ func (s UserSlice) FindMissingItemIDs(expectedIDs []int) []int {
 
 // InsertAll inserts all rows with the specified column values, using an executor.
 // IMPORTANT: this will calculate the widest columns from all items in the slice, be careful if you want to use default column values
-func (o UserSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o TodoSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
@@ -1180,17 +1216,17 @@ func (o UserSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, col
 	wlCols := make(map[string]struct{}, 10)
 	for _, row := range o {
 		wl, _ := columns.InsertColumnSet(
-			userAllColumns,
-			userColumnsWithDefault,
-			userColumnsWithoutDefault,
-			queries.NonZeroDefaultSet(userColumnsWithDefault, row),
+			todoAllColumns,
+			todoColumnsWithDefault,
+			todoColumnsWithoutDefault,
+			queries.NonZeroDefaultSet(todoColumnsWithDefault, row),
 		)
 		for _, col := range wl {
 			wlCols[col] = struct{}{}
 		}
 	}
 	wl := make([]string, 0, len(wlCols))
-	for _, col := range userAllColumns {
+	for _, col := range todoAllColumns {
 		if _, ok := wlCols[col]; ok {
 			wl = append(wl, col)
 		}
@@ -1214,13 +1250,13 @@ func (o UserSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, col
 		}
 
 		if i == 0 {
-			sql = "INSERT INTO `users` " + "(`" + strings.Join(wl, "`,`") + "`)" + " VALUES "
+			sql = "INSERT INTO `todos` " + "(`" + strings.Join(wl, "`,`") + "`)" + " VALUES "
 		}
 		sql += strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), len(vals)+1, len(wl))
 		if i != len(o)-1 {
 			sql += ","
 		}
-		valMapping, err := queries.BindMapping(userType, userMapping, wl)
+		valMapping, err := queries.BindMapping(todoType, todoMapping, wl)
 		if err != nil {
 			return 0, err
 		}
@@ -1237,15 +1273,15 @@ func (o UserSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, col
 
 	result, err := exec.ExecContext(ctx, sql, vals...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to insert all from user slice")
+		return 0, errors.Wrap(err, "models: unable to insert all from todo slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by insertall for users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by insertall for todos")
 	}
 
-	if len(userAfterInsertHooks) != 0 {
+	if len(todoAfterInsertHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterInsertHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1258,14 +1294,14 @@ func (o UserSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, col
 
 // InsertIgnoreAll inserts all rows with ignoring the existing ones having the same primary key values.
 // IMPORTANT: this will calculate the widest columns from all items in the slice, be careful if you want to use default column values
-func (o UserSlice) InsertIgnoreAll(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o TodoSlice) InsertIgnoreAll(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	return o.UpsertAll(ctx, exec, boil.None(), columns)
 }
 
 // UpsertAll inserts or updates all rows
 // Currently it doesn't support "NoContext" and "NoRowsAffected"
 // IMPORTANT: this will calculate the widest columns from all items in the slice, be careful if you want to use default column values
-func (o UserSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) (int64, error) {
+func (o TodoSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
@@ -1273,33 +1309,33 @@ func (o UserSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, upd
 	// Calculate the widest columns from all rows need to upsert
 	insertCols := make(map[string]struct{}, 10)
 	for _, row := range o {
-		nzUniques := queries.NonZeroDefaultSet(mySQLUserUniqueColumns, row)
+		nzUniques := queries.NonZeroDefaultSet(mySQLTodoUniqueColumns, row)
 		if len(nzUniques) == 0 {
 			return 0, errors.New("cannot upsert with a table that cannot conflict on a unique column")
 		}
 		insert, _ := insertColumns.InsertColumnSet(
-			userAllColumns,
-			userColumnsWithDefault,
-			userColumnsWithoutDefault,
-			queries.NonZeroDefaultSet(userColumnsWithDefault, row),
+			todoAllColumns,
+			todoColumnsWithDefault,
+			todoColumnsWithoutDefault,
+			queries.NonZeroDefaultSet(todoColumnsWithDefault, row),
 		)
 		for _, col := range insert {
 			insertCols[col] = struct{}{}
 		}
 	}
 	insert := make([]string, 0, len(insertCols))
-	for _, col := range userAllColumns {
+	for _, col := range todoAllColumns {
 		if _, ok := insertCols[col]; ok {
 			insert = append(insert, col)
 		}
 	}
 
 	update := updateColumns.UpdateColumnSet(
-		userAllColumns,
-		userPrimaryKeyColumns,
+		todoAllColumns,
+		todoPrimaryKeyColumns,
 	)
 	if !updateColumns.IsNone() && len(update) == 0 {
-		return 0, errors.New("models: unable to upsert users, could not build update column list")
+		return 0, errors.New("models: unable to upsert todos, could not build update column list")
 	}
 
 	buf := strmangle.GetBuffer()
@@ -1308,14 +1344,14 @@ func (o UserSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, upd
 	if len(update) == 0 {
 		fmt.Fprintf(
 			buf,
-			"INSERT IGNORE INTO `users`(%s) VALUES %s",
+			"INSERT IGNORE INTO `todos`(%s) VALUES %s",
 			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, insert), ","),
 			strmangle.Placeholders(false, len(insert)*len(o), 1, len(insert)),
 		)
 	} else {
 		fmt.Fprintf(
 			buf,
-			"INSERT INTO `users`(%s) VALUES %s ON DUPLICATE KEY UPDATE ",
+			"INSERT INTO `todos`(%s) VALUES %s ON DUPLICATE KEY UPDATE ",
 			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, insert), ","),
 			strmangle.Placeholders(false, len(insert)*len(o), 1, len(insert)),
 		)
@@ -1333,7 +1369,7 @@ func (o UserSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, upd
 	}
 
 	query := buf.String()
-	valueMapping, err := queries.BindMapping(userType, userMapping, insert)
+	valueMapping, err := queries.BindMapping(todoType, todoMapping, insert)
 	if err != nil {
 		return 0, err
 	}
@@ -1365,15 +1401,15 @@ func (o UserSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, upd
 
 	result, err := exec.ExecContext(ctx, query, vals...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to upsert for users")
+		return 0, errors.Wrap(err, "models: unable to upsert for todos")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by upsert for users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by upsert for todos")
 	}
 
-	if len(userAfterUpsertHooks) != 0 {
+	if len(todoAfterUpsertHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterUpsertHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1384,10 +1420,10 @@ func (o UserSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, upd
 	return rowsAff, nil
 }
 
-// DeleteAllByPage delete all User records from the slice.
+// DeleteAllByPage delete all Todo records from the slice.
 // This function deletes data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
 // Mysql Error 1390: Prepared statement contains too many placeholders.
-func (s UserSlice) DeleteAllByPage(ctx context.Context, exec boil.ContextExecutor, limits ...int) (int64, error) {
+func (s TodoSlice) DeleteAllByPage(ctx context.Context, exec boil.ContextExecutor, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
@@ -1423,10 +1459,10 @@ func (s UserSlice) DeleteAllByPage(ctx context.Context, exec boil.ContextExecuto
 	return rowsAffected, nil
 }
 
-// UpdateAllByPage update all User records from the slice.
+// UpdateAllByPage update all Todo records from the slice.
 // This function updates data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
 // Mysql Error 1390: Prepared statement contains too many placeholders.
-func (s UserSlice) UpdateAllByPage(ctx context.Context, exec boil.ContextExecutor, cols M, limits ...int) (int64, error) {
+func (s TodoSlice) UpdateAllByPage(ctx context.Context, exec boil.ContextExecutor, cols M, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
@@ -1463,17 +1499,17 @@ func (s UserSlice) UpdateAllByPage(ctx context.Context, exec boil.ContextExecuto
 	return rowsAffected, nil
 }
 
-// InsertAllByPage insert all User records from the slice.
+// InsertAllByPage insert all Todo records from the slice.
 // This function inserts data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
 // Mysql Error 1390: Prepared statement contains too many placeholders.
-func (s UserSlice) InsertAllByPage(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns, limits ...int) (int64, error) {
+func (s TodoSlice) InsertAllByPage(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
 	}
 
 	// MySQL max placeholders = 65535
-	chunkSize := MaxPageSize / reflect.ValueOf(&UserColumns).Elem().NumField()
+	chunkSize := MaxPageSize / reflect.ValueOf(&TodoColumns).Elem().NumField()
 	if len(limits) > 0 && limits[0] > 0 && limits[0] < chunkSize {
 		chunkSize = limits[0]
 	}
@@ -1502,16 +1538,16 @@ func (s UserSlice) InsertAllByPage(ctx context.Context, exec boil.ContextExecuto
 	return rowsAffected, nil
 }
 
-// InsertIgnoreAllByPage insert all User records from the slice.
+// InsertIgnoreAllByPage insert all Todo records from the slice.
 // This function inserts data by pages to avoid exceeding Postgres limitation (max parameters: 65535)
-func (s UserSlice) InsertIgnoreAllByPage(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns, limits ...int) (int64, error) {
+func (s TodoSlice) InsertIgnoreAllByPage(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
 	}
 
 	// max number of parameters = 65535
-	chunkSize := MaxPageSize / reflect.ValueOf(&UserColumns).Elem().NumField()
+	chunkSize := MaxPageSize / reflect.ValueOf(&TodoColumns).Elem().NumField()
 	if len(limits) > 0 && limits[0] > 0 && limits[0] < chunkSize {
 		chunkSize = limits[0]
 	}
@@ -1540,17 +1576,17 @@ func (s UserSlice) InsertIgnoreAllByPage(ctx context.Context, exec boil.ContextE
 	return rowsAffected, nil
 }
 
-// UpsertAllByPage upsert all User records from the slice.
+// UpsertAllByPage upsert all Todo records from the slice.
 // This function upserts data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
 // Mysql Error 1390: Prepared statement contains too many placeholders.
-func (s UserSlice) UpsertAllByPage(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns, limits ...int) (int64, error) {
+func (s TodoSlice) UpsertAllByPage(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
 	}
 
 	// MySQL max placeholders = 65535
-	chunkSize := MaxPageSize / reflect.ValueOf(&UserColumns).Elem().NumField()
+	chunkSize := MaxPageSize / reflect.ValueOf(&TodoColumns).Elem().NumField()
 	if len(limits) > 0 && limits[0] > 0 && limits[0] < chunkSize {
 		chunkSize = limits[0]
 	}

@@ -4,6 +4,8 @@ import (
 	"app/controllers"
 	"app/db"
 	"app/generated/auth"
+	"app/generated/todos"
+	"app/middlewares"
 	"app/services"
 	"net/http"
 	"os"
@@ -17,10 +19,16 @@ func main() {
 
 	// NOTE: service層のインスタンス化
 	authService := services.NewAuthService(dbCon)
+	todoService := services.NewTodoService(dbCon)
 
 	// NOTE: controllerをHandlerに追加
 	server := controllers.NewAuthController(authService)
 	strictHandler := auth.NewStrictHandler(server, nil)
+
+	todosServer := controllers.NewTodosController(todoService)
+	
+	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
+	todosStrictHandler := todos.NewStrictHandler(todosServer, todosMiddlewares)
 
 	// NOTE: Handlerをルーティングに追加
 	e := echo.New()
@@ -29,6 +37,7 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
 	auth.RegisterHandlers(e, strictHandler)
+	todos.RegisterHandlers(e, todosStrictHandler)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
 }
