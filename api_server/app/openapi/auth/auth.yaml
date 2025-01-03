@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: business-matching-app
+  title: auth
   version: '1.0'
   summary: ''
-  description: APIs
+  description: auth APIs
 servers:
   - url: 'http://localhost:8080'
 paths:

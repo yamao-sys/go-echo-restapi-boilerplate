@@ -15,3 +15,5 @@ RUN go mod tidy && \
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
 
 RUN apk add --update make
+
+CMD sh -c "godotenv -f .env go run main.go"
