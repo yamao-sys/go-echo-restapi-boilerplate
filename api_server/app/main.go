@@ -20,7 +20,7 @@ func main() {
 
 	dbCon := db.Init()
 
-	// NOTE: service層のインスタンス化
+	// NOTE: service層のインスタンス
 	authService := services.NewAuthService(dbCon)
 	todoService := services.NewTodoService(dbCon)
 
