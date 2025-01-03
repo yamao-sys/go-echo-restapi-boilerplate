@@ -25,7 +25,7 @@ Go Echo の REST API のボイラープレート
 | ---------------------- | ------------- | -------------------- | -------- |
 | 会員登録バリデーション | POST          | /auth/validateSignUp | 権限なし |
 | 会員登録               | POST          | /auth/signUp         | 権限なし |
-| ログイン               | POST          | /auth/sign_in        | 権限なし |
+| ログイン               | POST          | /auth/signIn        | 権限なし |
 
 ### TODO リスト
 
