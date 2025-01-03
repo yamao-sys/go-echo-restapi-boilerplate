@@ -206,7 +206,7 @@ func (s *TestAuthServiceSuite) TestSignUp_SuccessWithOptionalFields() {
 
 func (s *TestAuthServiceSuite) TestSignIn_StatusOK() {
 	// NOTE: テスト用ユーザの作成
-	user := factories.Factory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
+	user := factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
 	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
@@ -222,7 +222,7 @@ func (s *TestAuthServiceSuite) TestSignIn_StatusOK() {
 
 func (s *TestAuthServiceSuite) TestSignIn_BadRequest() {
 	// NOTE: テスト用ユーザの作成
-	user := factories.Factory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
+	user := factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
 	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
