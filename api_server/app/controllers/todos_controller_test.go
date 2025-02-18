@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"app/generated/auth"
 	"app/generated/todos"
 	"app/middlewares"
 	models "app/models/generated"
@@ -39,6 +40,12 @@ func (s *testTodosControllerSuite) SetupTest() {
 	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
 	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
 	todos.RegisterHandlers(e, strictHandler)
+
+	authService := services.NewAuthService(DBCon)
+	authController := NewAuthController(authService)
+
+	authStrictHandler := auth.NewStrictHandler(authController, nil)
+	auth.RegisterHandlers(e, authStrictHandler)
 }
 
 func (s *testTodosControllerSuite) TearDownTest() {

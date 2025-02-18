@@ -4,7 +4,6 @@ import (
 	"app/db"
 	"app/generated/auth"
 	models "app/models/generated"
-	"app/services"
 	"app/test/factories"
 	"app/utils/routers"
 	"context"
@@ -58,17 +57,12 @@ func (s *WithDBSuite) CloseDB() {
 }
 
 func (s *WithDBSuite) SignIn() {
-	authService := services.NewAuthService(DBCon)
-	authController := NewAuthController(authService)
-
 	// NOTE: テスト用ユーザの作成
 	user = factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
 	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
-	strictHandler := auth.NewStrictHandler(authController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
+	
 	reqBody := auth.SignInInput{
 		Email: "test@example.com",
 		Password: "password",
