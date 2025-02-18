@@ -67,34 +67,19 @@ func (s *WithDBSuite) SignIn() {
 		Email: "test@example.com",
 		Password: "password",
 	}
-
-	closed := make(chan struct{})
-	go func() {
-		result := testutil.NewRequest().Post("/auth/signIn").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
-
-		token = result.Recorder.Result().Header.Values("Set-Cookie")[0]	
-		close(closed)
-	}()
-
-	<-closed
+	result := testutil.NewRequest().Post("/auth/signIn").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	token = result.Recorder.Result().Header.Values("Set-Cookie")[0]	
 }
 
 func (s *WithDBSuite) SetCsrfHeaderValues() {
-	closed := make(chan struct{})
-	go func ()  {
-		result := testutil.NewRequest().Get("/auth/csrf").GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Get("/auth/csrf").GoWithHTTPHandler(s.T(), e)
 
-		var res auth.GetAuthCsrf200JSONResponse
-		err := result.UnmarshalJsonToObject(&res)
-		if err != nil {
-			s.T().Error(err.Error())
-		}
+	var res auth.GetAuthCsrf200JSONResponse
+	err := result.UnmarshalJsonToObject(&res)
+	if err != nil {
+		s.T().Error(err.Error())
+	}
 
-		csrfToken = res.CsrfToken
-		csrfTokenCookie = result.Recorder.Result().Header.Values("Set-Cookie")[0]
-
-		close(closed)
-	}()
-
-	<-closed
+	csrfToken = res.CsrfToken
+	csrfTokenCookie = result.Recorder.Result().Header.Values("Set-Cookie")[0]
 }
