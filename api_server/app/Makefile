@@ -9,7 +9,7 @@ migrate:
 	cd db && godotenv -f /app/.env sql-migrate up -env="mysql" && cd /app
 
 test-local:
-	cd db && godotenv -f /app/.env sql-migrate up -env="mysql" && cd /app
+	cd db && godotenv -f /app/.env.test.local sql-migrate up -env="mysql" && cd /app
 	godotenv -f /app/.env.test.local go test -v ./... -p 1
 
 test-ci:
