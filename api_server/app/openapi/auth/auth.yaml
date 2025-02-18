@@ -26,7 +26,6 @@ paths:
   /auth/signUp:
     post:
       summary: SignUp
-      tags: []
       responses:
         '200':
           $ref: '#/components/responses/SignUpResponse'
@@ -37,10 +36,11 @@ paths:
       operationId: post-auth-sign_up
       requestBody:
         $ref: '#/components/requestBodies/SignUpInput'
+      tags:
+        - auth
   /auth/signIn:
     post:
       summary: Sign In
-      tags: []
       responses:
         '200':
           $ref: '#/components/responses/SignInOkResponse'
@@ -51,6 +51,19 @@ paths:
       operationId: post-auth-sign_in
       requestBody:
         $ref: '#/components/requestBodies/SignInInput'
+      tags:
+        - auth
+  /auth/csrf:
+    get:
+      summary: Get Csrf
+      responses:
+        '200':
+          $ref: '#/components/responses/CsrfResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: get-auth-csrf
+      tags:
+        - auth
 components:
   schemas:
     SignUpValidationError:
@@ -169,6 +182,17 @@ components:
                 type: array
                 items:
                   type: string
+    CsrfResponse:
+      description: Csrf response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - csrf_token
+            properties:
+              csrf_token:
+                type: string
     InternalServerErrorResponse:
       description: Internal Server Error Response
       content:

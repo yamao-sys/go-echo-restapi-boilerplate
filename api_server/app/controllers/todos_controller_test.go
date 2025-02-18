@@ -35,6 +35,10 @@ func (s *testTodosControllerSuite) SetupTest() {
 
 	// NOTE: テスト対象のコントローラを設定
 	testTodosController = NewTodosController(todoService)
+
+	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
+	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
+	todos.RegisterHandlers(e, strictHandler)
 }
 
 func (s *testTodosControllerSuite) TearDownTest() {
@@ -42,19 +46,16 @@ func (s *testTodosControllerSuite) TearDownTest() {
 }
 
 func (s *testTodosControllerSuite) TestPostTodos_StatusOk() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
-
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
 
 	reqBody := todos.StoreTodoInput{
 		Title: "test_title",
 		Content: "test_content",
 	}
-	result := testutil.NewRequest().Post("/todos").WithHeader("Cookie", token).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	// NOTE: CSRFトークンの変数セット
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Post("/todos").WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res todos.PostTodos200JSONResponse
@@ -73,19 +74,15 @@ func (s *testTodosControllerSuite) TestPostTodos_StatusOk() {
 }
 
 func (s *testTodosControllerSuite) TestPostTodos_StatusBadRequest() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
-
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
 
 	reqBody := todos.StoreTodoInput{
 		Title: "",
 		Content: "test_content",
 	}
-	result := testutil.NewRequest().Post("/todos").WithHeader("Cookie", token).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Post("/todos").WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusBadRequest, result.Code())
 
 	var res todos.PostTodos400JSONResponse
@@ -103,17 +100,12 @@ func (s *testTodosControllerSuite) TestPostTodos_StatusBadRequest() {
 }
 
 func (s *testTodosControllerSuite) TestPostTodos_StatusUnauthorized() {
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-
+	s.SetCsrfHeaderValues()
 	reqBody := todos.StoreTodoInput{
 		Title: "test_title",
 		Content: "test_content",
 	}
-	result := testutil.NewRequest().Post("/todos").WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/todos").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusUnauthorized, result.Code())
 
 	// NOTE: TODOリストが作成されていないことを確認
@@ -124,6 +116,7 @@ func (s *testTodosControllerSuite) TestPostTodos_StatusUnauthorized() {
 }
 
 func (s *testTodosControllerSuite) TestGetTodos_StatusOk() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
 
 	var todosSlice models.TodoSlice
@@ -142,13 +135,8 @@ func (s *testTodosControllerSuite) TestGetTodos_StatusOk() {
 		s.T().Fatalf("failed to create TestFetchTodosList Data: %v", err)
 	}
 	
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-	
-	result := testutil.NewRequest().Get("/todos").WithHeader("Cookie", token).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Get("/todos").WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res todos.GetTodos200JSONResponse
@@ -160,17 +148,13 @@ func (s *testTodosControllerSuite) TestGetTodos_StatusOk() {
 }
 
 func (s *testTodosControllerSuite) TestGetTodos_StatusUnauthorized() {
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-	
-	result := testutil.NewRequest().Get("/todos").GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Get("/todos").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusUnauthorized, result.Code())
 }
 
 func (s *testTodosControllerSuite) TestGetTodo_StatusOk() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
 
 	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
@@ -178,14 +162,9 @@ func (s *testTodosControllerSuite) TestGetTodo_StatusOk() {
 	if err := todo.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test todo %v", err)
 	}
-	
-	e := echo.New()
 
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-	
-	result := testutil.NewRequest().Get("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Get("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res todos.GetTodo200JSONResponse
@@ -196,17 +175,14 @@ func (s *testTodosControllerSuite) TestGetTodo_StatusOk() {
 }
 
 func (s *testTodosControllerSuite) TestGetTodo_StatusUnauthorized() {
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
+	s.SetCsrfHeaderValues()
 	
-	result := testutil.NewRequest().Get("/todos/1").GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Get("/todos/1").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusUnauthorized, result.Code())
 }
 
 func (s *testTodosControllerSuite) TestGetTodo_StatusNotFound() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
 
 	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
@@ -215,17 +191,13 @@ func (s *testTodosControllerSuite) TestGetTodo_StatusNotFound() {
 		s.T().Fatalf("failed to create test todo %v", err)
 	}
 	
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-	
-	result := testutil.NewRequest().Get("/todos/"+strconv.Itoa(int(todo.ID + 1))).WithHeader("Cookie", token).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Get("/todos/"+strconv.Itoa(int(todo.ID + 1))).WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusNotFound, result.Code())
 }
 
 func (s *testTodosControllerSuite) TestPatchTodo_StatusOk() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
 
 	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
@@ -233,18 +205,13 @@ func (s *testTodosControllerSuite) TestPatchTodo_StatusOk() {
 	if err := todo.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test todo %v", err)
 	}
-
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
 
 	reqBody := todos.StoreTodoInput{
 		Title: "test updated title 1",
 		Content: "test updated content 1",
 	}
-	result := testutil.NewRequest().Patch("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Patch("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res todos.PatchTodo200JSONResponse
@@ -261,6 +228,7 @@ func (s *testTodosControllerSuite) TestPatchTodo_StatusOk() {
 }
 
 func (s *testTodosControllerSuite) TestPatchTodo_StatusBadRequest() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
 
 	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
@@ -269,17 +237,12 @@ func (s *testTodosControllerSuite) TestPatchTodo_StatusBadRequest() {
 		s.T().Fatalf("failed to create test todo %v", err)
 	}
 	
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-	
 	reqBody := todos.StoreTodoInput{
 		Title: "",
 		Content: "test updated content 1",
 	}
-	result := testutil.NewRequest().Patch("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Patch("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusBadRequest, result.Code())
 
 	var res todos.PatchTodo400JSONResponse
@@ -298,21 +261,18 @@ func (s *testTodosControllerSuite) TestPatchTodo_StatusBadRequest() {
 }
 
 func (s *testTodosControllerSuite) TestPatchTodo_StatusUnauthorized() {
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
+	s.SetCsrfHeaderValues()
 
 	reqBody := todos.StoreTodoInput{
 		Title: "test_title",
 		Content: "test_content",
 	}
-	result := testutil.NewRequest().Patch("/todos/1").WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Patch("/todos/1").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusUnauthorized, result.Code())
 }
 
 func (s *testTodosControllerSuite) TestPatchTodo_StatusNotFound() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
 
 	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
@@ -321,17 +281,12 @@ func (s *testTodosControllerSuite) TestPatchTodo_StatusNotFound() {
 		s.T().Fatalf("failed to create test todo %v", err)
 	}
 	
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-	
 	reqBody := todos.StoreTodoInput{
 		Title: "test updated title 1",
 		Content: "test updated content 1",
 	}
-	result := testutil.NewRequest().Patch("/todos/"+strconv.Itoa(int(todo.ID + 1))).WithHeader("Cookie", token).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Patch("/todos/"+strconv.Itoa(int(todo.ID + 1))).WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusNotFound, result.Code())
 
 	// NOTE: TODOリストが更新されていないことを確認
@@ -343,6 +298,7 @@ func (s *testTodosControllerSuite) TestPatchTodo_StatusNotFound() {
 }
 
 func (s *testTodosControllerSuite) TestDeleteTodo_StatusOk() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
 
 	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
@@ -351,13 +307,8 @@ func (s *testTodosControllerSuite) TestDeleteTodo_StatusOk() {
 		s.T().Fatalf("failed to create test todo %v", err)
 	}
 
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-
-	result := testutil.NewRequest().Delete("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Delete("/todos/"+strconv.Itoa(int(todo.ID))).WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res todos.DeleteTodo200JSONResponse
@@ -372,17 +323,14 @@ func (s *testTodosControllerSuite) TestDeleteTodo_StatusOk() {
 }
 
 func (s *testTodosControllerSuite) TestDeleteTodo_StatusUnauthorized() {
-	e := echo.New()
+	s.SetCsrfHeaderValues()
 
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-
-	result := testutil.NewRequest().Delete("/todos/1").GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Delete("/todos/1").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusUnauthorized, result.Code())
 }
 
 func (s *testTodosControllerSuite) TestDeleteTodo_StatusNotFound() {
+	s.SetCsrfHeaderValues()
 	s.SignIn()
 
 	todoParam := map[string]interface{}{"UserID": int64(user.ID), "Title": "test title 1", "Content": null.String{String: "test content 1", Valid: true}}
@@ -391,13 +339,8 @@ func (s *testTodosControllerSuite) TestDeleteTodo_StatusNotFound() {
 		s.T().Fatalf("failed to create test todo %v", err)
 	}
 	
-	e := echo.New()
-
-	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
-	strictHandler := todos.NewStrictHandler(testTodosController, todosMiddlewares)
-	todos.RegisterHandlers(e, strictHandler)
-	
-	result := testutil.NewRequest().Delete("/todos/"+strconv.Itoa(int(todo.ID + 1))).WithHeader("Cookie", token).GoWithHTTPHandler(s.T(), e)
+	s.SetCsrfHeaderValues()
+	result := testutil.NewRequest().Delete("/todos/"+strconv.Itoa(int(todo.ID + 1))).WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusNotFound, result.Code())
 
 	// NOTE: TODOリストが削除されていないことを確認

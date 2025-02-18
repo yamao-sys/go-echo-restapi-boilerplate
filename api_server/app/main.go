@@ -7,18 +7,18 @@ import (
 	"app/generated/todos"
 	"app/middlewares"
 	"app/services"
-	"net/http"
+	"app/utils/routers"
 	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
 	loadEnv()
 
 	dbCon := db.Init()
+	e := echo.New()
 
 	// NOTE: service層のインスタンス
 	authService := services.NewAuthService(dbCon)
@@ -33,16 +33,12 @@ func main() {
 	todosMiddlewares := []todos.StrictMiddlewareFunc{middlewares.AuthMiddleware}
 	todosStrictHandler := todos.NewStrictHandler(todosServer, todosMiddlewares)
 
-	// NOTE: Handlerをルーティングに追加
-	e := echo.New()
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:5173"},
-		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
-	}))
-	auth.RegisterHandlers(e, strictHandler)
-	todos.RegisterHandlers(e, todosStrictHandler)
+	appliedMiddlewareEcho := routers.ApplyMiddlewares(e)
 
-	e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
+	auth.RegisterHandlers(appliedMiddlewareEcho, strictHandler)
+	todos.RegisterHandlers(appliedMiddlewareEcho, todosStrictHandler)
+
+	appliedMiddlewareEcho.Logger.Fatal(appliedMiddlewareEcho.Start(":" + os.Getenv("SERVER_PORT")))
 }
 
 func loadEnv() {

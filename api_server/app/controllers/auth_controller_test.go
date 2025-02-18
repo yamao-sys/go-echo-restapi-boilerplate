@@ -37,6 +37,12 @@ func (s *TestAuthControllerSuite) SetupTest() {
 
 	// NOTE: テスト対象のコントローラを設定
 	testAuthController = NewAuthController(authService)
+
+	strictHandler := auth.NewStrictHandler(testAuthController, nil)
+	auth.RegisterHandlers(e, strictHandler)
+
+	// NOTE: CSRFトークンのセット
+	s.SetCsrfHeaderValues()
 }
 
 func (s *TestAuthControllerSuite) TearDownTest() {
@@ -60,12 +66,10 @@ func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_SuccessRequiredFiel
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
-	result := testutil.NewRequest().Post("/auth/validateSignUp").WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/validateSignUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res auth.SignUpResponseJSONResponse
@@ -94,12 +98,10 @@ func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_ValidationErrorRequ
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
-	result := testutil.NewRequest().Post("/auth/validateSignUp").WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/validateSignUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res auth.SignUpResponseJSONResponse
@@ -143,12 +145,10 @@ func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_SuccessWithOptional
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
-	result := testutil.NewRequest().Post("/auth/validateSignUp").WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/validateSignUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res auth.SignUpResponseJSONResponse
@@ -188,12 +188,10 @@ func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_ValidationErrorWith
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
-	result := testutil.NewRequest().Post("/auth/validateSignUp").WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/validateSignUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res auth.SignUpResponseJSONResponse
@@ -221,13 +219,10 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessRequiredFields() {
 
 	// NOTE: 終了メッセージを書く
 	mw.Close()
-
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
-	result := testutil.NewRequest().Post("/auth/signUp").WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/signUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res auth.SignUpResponseJSONResponse
@@ -281,12 +276,10 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithOptionalFields()
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
-	result := testutil.NewRequest().Post("/auth/signUp").WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/signUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res auth.SignUpResponseJSONResponse
@@ -340,12 +333,10 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithEmptyBirthday() 
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
-	result := testutil.NewRequest().Post("/auth/signUp").WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/signUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
 	var res auth.SignUpResponseJSONResponse
@@ -377,8 +368,6 @@ func (s *TestAuthControllerSuite) TestPostAuthSignIn_StatusOk() {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
 
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
@@ -386,7 +375,7 @@ func (s *TestAuthControllerSuite) TestPostAuthSignIn_StatusOk() {
 		Email: "test@example.com",
 		Password: "password",
 	}
-	result := testutil.NewRequest().Post("/auth/signIn").WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/signIn").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), int(http.StatusOK), result.Code())
 
 	cookieString := result.Recorder.Result().Header.Values("Set-Cookie")[0]
@@ -400,8 +389,6 @@ func (s *TestAuthControllerSuite) TestPostAuthSignIn_BadRequest() {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
 
-	e := echo.New()
-
 	strictHandler := auth.NewStrictHandler(testAuthController, nil)
 	auth.RegisterHandlers(e, strictHandler)
 
@@ -409,7 +396,7 @@ func (s *TestAuthControllerSuite) TestPostAuthSignIn_BadRequest() {
 		Email: "test_@example.com",
 		Password: "password",
 	}
-	result := testutil.NewRequest().Post("/auth/signIn").WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/signIn").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), int(http.StatusBadRequest), result.Code())
 
 	var res auth.SignInBadRequestResponse

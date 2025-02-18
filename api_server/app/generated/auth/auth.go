@@ -26,6 +26,11 @@ type SignUpValidationError struct {
 	Password            *[]string `json:"password,omitempty"`
 }
 
+// CsrfResponse defines model for CsrfResponse.
+type CsrfResponse struct {
+	CsrfToken string `json:"csrf_token"`
+}
+
 // InternalServerErrorResponse defines model for InternalServerErrorResponse.
 type InternalServerErrorResponse struct {
 	Code    int64  `json:"code"`
@@ -42,7 +47,7 @@ type SignInOkResponse = map[string]interface{}
 
 // SignUpResponse defines model for SignUpResponse.
 type SignUpResponse struct {
-	Code   int64                          `json:"code"`
+	Code   int64                 `json:"code"`
 	Errors SignUpValidationError `json:"errors"`
 }
 
@@ -91,7 +96,10 @@ type PostAuthValidateSignUpMultipartRequestBody PostAuthValidateSignUpMultipartB
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	//  Sign In
+	// Get Csrf
+	// (GET /auth/csrf)
+	GetAuthCsrf(ctx echo.Context) error
+	// Sign In
 	// (POST /auth/signIn)
 	PostAuthSignIn(ctx echo.Context) error
 	// SignUp
@@ -105,6 +113,15 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// GetAuthCsrf converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAuthCsrf(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAuthCsrf(ctx)
+	return err
 }
 
 // PostAuthSignIn converts echo context to params.
@@ -162,10 +179,15 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/auth/csrf", wrapper.GetAuthCsrf)
 	router.POST(baseURL+"/auth/signIn", wrapper.PostAuthSignIn)
 	router.POST(baseURL+"/auth/signUp", wrapper.PostAuthSignUp)
 	router.POST(baseURL+"/auth/validateSignUp", wrapper.PostAuthValidateSignUp)
 
+}
+
+type CsrfResponseJSONResponse struct {
+	CsrfToken string `json:"csrf_token"`
 }
 
 type InternalServerErrorResponseJSONResponse struct {
@@ -187,8 +209,35 @@ type SignInOkResponseJSONResponse struct {
 }
 
 type SignUpResponseJSONResponse struct {
-	Code   int64                          `json:"code"`
+	Code   int64                 `json:"code"`
 	Errors SignUpValidationError `json:"errors"`
+}
+
+type GetAuthCsrfRequestObject struct {
+}
+
+type GetAuthCsrfResponseObject interface {
+	VisitGetAuthCsrfResponse(w http.ResponseWriter) error
+}
+
+type GetAuthCsrf200JSONResponse struct{ CsrfResponseJSONResponse }
+
+func (response GetAuthCsrf200JSONResponse) VisitGetAuthCsrfResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthCsrf500JSONResponse struct {
+	InternalServerErrorResponseJSONResponse
+}
+
+func (response GetAuthCsrf500JSONResponse) VisitGetAuthCsrfResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
 }
 
 type PostAuthSignInRequestObject struct {
@@ -199,9 +248,7 @@ type PostAuthSignInResponseObject interface {
 	VisitPostAuthSignInResponse(w http.ResponseWriter) error
 }
 
-type PostAuthSignIn200JSONResponse struct {
-	SignInOkResponseJSONResponse
-}
+type PostAuthSignIn200JSONResponse struct{ SignInOkResponseJSONResponse }
 
 func (response PostAuthSignIn200JSONResponse) VisitPostAuthSignInResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -241,9 +288,7 @@ type PostAuthSignUpResponseObject interface {
 	VisitPostAuthSignUpResponse(w http.ResponseWriter) error
 }
 
-type PostAuthSignUp200JSONResponse struct {
-	SignUpResponseJSONResponse
-}
+type PostAuthSignUp200JSONResponse struct{ SignUpResponseJSONResponse }
 
 func (response PostAuthSignUp200JSONResponse) VisitPostAuthSignUpResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -253,7 +298,7 @@ func (response PostAuthSignUp200JSONResponse) VisitPostAuthSignUpResponse(w http
 }
 
 type PostAuthSignUp400JSONResponse struct {
-	Code   int64                          `json:"code"`
+	Code   int64                 `json:"code"`
 	Errors SignUpValidationError `json:"errors"`
 }
 
@@ -283,9 +328,7 @@ type PostAuthValidateSignUpResponseObject interface {
 	VisitPostAuthValidateSignUpResponse(w http.ResponseWriter) error
 }
 
-type PostAuthValidateSignUp200JSONResponse struct {
-	SignUpResponseJSONResponse
-}
+type PostAuthValidateSignUp200JSONResponse struct{ SignUpResponseJSONResponse }
 
 func (response PostAuthValidateSignUp200JSONResponse) VisitPostAuthValidateSignUpResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -295,7 +338,7 @@ func (response PostAuthValidateSignUp200JSONResponse) VisitPostAuthValidateSignU
 }
 
 type PostAuthValidateSignUp400JSONResponse struct {
-	Code   int64                          `json:"code"`
+	Code   int64                 `json:"code"`
 	Errors SignUpValidationError `json:"errors"`
 }
 
@@ -319,7 +362,10 @@ func (response PostAuthValidateSignUp500JSONResponse) VisitPostAuthValidateSignU
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
-	//  Sign In
+	// Get Csrf
+	// (GET /auth/csrf)
+	GetAuthCsrf(ctx context.Context, request GetAuthCsrfRequestObject) (GetAuthCsrfResponseObject, error)
+	// Sign In
 	// (POST /auth/signIn)
 	PostAuthSignIn(ctx context.Context, request PostAuthSignInRequestObject) (PostAuthSignInResponseObject, error)
 	// SignUp
@@ -340,6 +386,29 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// GetAuthCsrf operation middleware
+func (sh *strictHandler) GetAuthCsrf(ctx echo.Context) error {
+	var request GetAuthCsrfRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAuthCsrf(ctx.Request().Context(), request.(GetAuthCsrfRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAuthCsrf")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetAuthCsrfResponseObject); ok {
+		return validResponse.VisitGetAuthCsrfResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
 }
 
 // PostAuthSignIn operation middleware
