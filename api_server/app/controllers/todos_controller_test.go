@@ -53,7 +53,6 @@ func (s *testTodosControllerSuite) TestPostTodos_StatusOk() {
 		Title: "test_title",
 		Content: "test_content",
 	}
-	// NOTE: CSRFトークンの変数セット
 	s.SetCsrfHeaderValues()
 	result := testutil.NewRequest().Post("/todos").WithHeader("Cookie", token+"; "+csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
