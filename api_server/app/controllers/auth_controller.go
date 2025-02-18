@@ -13,10 +13,12 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/labstack/echo/v4/middleware"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 type AuthController interface {
+	GetAuthCsrf(ctx context.Context, request auth.GetAuthCsrfRequestObject) (auth.GetAuthCsrfResponseObject, error)
 	PostAuthSignIn(ctx context.Context, request auth.PostAuthSignInRequestObject) (auth.PostAuthSignInResponseObject, error)
 	PostAuthValidateSignUp(ctx context.Context, request auth.PostAuthValidateSignUpRequestObject) (auth.PostAuthValidateSignUpResponseObject, error)
 	PostAuthSignUp(ctx context.Context, request auth.PostAuthSignUpRequestObject) (auth.PostAuthSignUpResponseObject, error)
@@ -28,6 +30,18 @@ type authController struct {
 
 func NewAuthController(authService services.AuthService) AuthController {
 	return &authController{authService}
+}
+
+func (authController *authController) GetAuthCsrf(ctx context.Context, request auth.GetAuthCsrfRequestObject) (auth.GetAuthCsrfResponseObject, error) {
+	csrfToken, ok := ctx.Value(middleware.DefaultCSRFConfig.ContextKey).(string)
+	if !ok {
+		return auth.GetAuthCsrf500JSONResponse{InternalServerErrorResponseJSONResponse: auth.InternalServerErrorResponseJSONResponse{
+			Code: http.StatusInternalServerError,
+			Message: "failed to retrieval token",
+		}}, nil
+	}
+	
+	return auth.GetAuthCsrf200JSONResponse{CsrfResponseJSONResponse: auth.CsrfResponseJSONResponse{ CsrfToken: csrfToken }}, nil
 }
 
 func (authController *authController) PostAuthSignIn(ctx context.Context, request auth.PostAuthSignInRequestObject) (auth.PostAuthSignInResponseObject, error) {

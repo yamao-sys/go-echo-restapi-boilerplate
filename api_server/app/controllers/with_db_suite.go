@@ -4,8 +4,8 @@ import (
 	"app/db"
 	"app/generated/auth"
 	models "app/models/generated"
-	"app/services"
 	"app/test/factories"
+	"app/utils/routers"
 	"context"
 	"database/sql"
 
@@ -25,6 +25,9 @@ var (
 	ctx   context.Context
 	user *models.User
 	token string
+	e *echo.Echo
+	csrfToken string
+	csrfTokenCookie string
 )
 
 // func (s *WithDBSuite) SetupSuite()                           {} // テストスイート実施前の処理
@@ -37,6 +40,8 @@ var (
 func init() {
 	txdb.Register("txdb-controller", "mysql", db.GetDsn())
 	ctx = context.Background()
+
+	e = routers.ApplyMiddlewares(echo.New())
 }
 
 func (s *WithDBSuite) SetDBCon() {
@@ -52,24 +57,29 @@ func (s *WithDBSuite) CloseDB() {
 }
 
 func (s *WithDBSuite) SignIn() {
-	authService := services.NewAuthService(DBCon)
-	authController := NewAuthController(authService)
-
 	// NOTE: テスト用ユーザの作成
 	user = factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
 	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
-	e := echo.New()
-
-	strictHandler := auth.NewStrictHandler(authController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
+	
 	reqBody := auth.SignInInput{
 		Email: "test@example.com",
 		Password: "password",
 	}
-	result := testutil.NewRequest().Post("/auth/signIn").WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	result := testutil.NewRequest().Post("/auth/signIn").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
+	token = result.Recorder.Result().Header.Values("Set-Cookie")[0]	
+}
 
-	token = result.Recorder.Result().Header.Values("Set-Cookie")[0]
+func (s *WithDBSuite) SetCsrfHeaderValues() {
+	result := testutil.NewRequest().Get("/auth/csrf").GoWithHTTPHandler(s.T(), e)
+
+	var res auth.GetAuthCsrf200JSONResponse
+	err := result.UnmarshalJsonToObject(&res)
+	if err != nil {
+		s.T().Error(err.Error())
+	}
+
+	csrfToken = res.CsrfToken
+	csrfTokenCookie = result.Recorder.Result().Header.Values("Set-Cookie")[0]
 }

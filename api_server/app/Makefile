@@ -9,12 +9,12 @@ migrate:
 	cd db && godotenv -f /app/.env sql-migrate up -env="mysql" && cd /app
 
 test-local:
-	cd db && godotenv -f /app/.env sql-migrate up -env="mysql" && cd /app
-	godotenv -f /app/.env.test.local go test -v ./... -p 1
+	cd db && godotenv -f /app/.env.test.local sql-migrate up -env="mysql" && cd /app
+	godotenv -f /app/.env.test.local go test -v ./... -p 1 -shuffle=on
 
 test-ci:
 	cd db && godotenv -f /app/.env.test sql-migrate up -env="mysql" && cd ..
-	godotenv -f /app/.env.test go test -v ./... -p 1
+	godotenv -f /app/.env.test go test -v ./... -p 1  -shuffle=on
 
 prepare-sqlboiler:
 	@go get -u github.com/tiendc/sqlboiler-extensions@$(BOIL_EXT_VER)
