@@ -3,9 +3,9 @@ services:
   api_server:
     container_name: api_server
     build:
-      context: ./api_server/app
+      context: ./api_server
     volumes:
-      - ./api_server/app:/app
+      - ./api_server:/app
     ports:
       - 8080:8080
     depends_on:
