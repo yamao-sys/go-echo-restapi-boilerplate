@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"app/generated/auth"
+	apis "app/openapi"
 	"fmt"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -14,7 +14,7 @@ import (
 
 var allowedMIMEType = []string{"image/webp", "image/png", "image/jpeg"}
 
-func ValidateSignUp(input *auth.PostAuthValidateSignUpMultipartRequestBody) error {
+func ValidateSignUp(input *apis.PostAuthValidateSignUpMultipartRequestBody) error {
 	return validation.ValidateStruct(input,
 		validation.Field(
 			&input.FirstName,

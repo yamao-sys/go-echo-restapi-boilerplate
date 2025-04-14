@@ -1,8 +1,8 @@
 package services
 
 import (
-	"app/generated/auth"
 	models "app/models/generated"
+	apis "app/openapi"
 	"app/test/factories"
 	"bytes"
 	"net/http"
@@ -37,7 +37,7 @@ func (s *TestAuthServiceSuite) TearDownTest() {
 }
 
 func (s *TestAuthServiceSuite) TestValidateSignUp_SuccessRequiredFields() {
-	requestParams := auth.PostAuthValidateSignUpMultipartRequestBody{
+	requestParams := apis.PostAuthValidateSignUpMultipartRequestBody{
 		FirstName: "first_name",
 		LastName: "last_name",
 		Email: "test@example.com",
@@ -50,7 +50,7 @@ func (s *TestAuthServiceSuite) TestValidateSignUp_SuccessRequiredFields() {
 }
 
 func (s *TestAuthServiceSuite) TestValidateSignUp_ValidationErrorRequiredFields() {
-	requestParams := auth.PostAuthValidateSignUpMultipartRequestBody{
+	requestParams := apis.PostAuthValidateSignUpMultipartRequestBody{
 		FirstName: "",
 		LastName: "",
 		Email: "",
@@ -89,7 +89,7 @@ func (s *TestAuthServiceSuite) TestValidateSignUp_SuccessWithOptionalFields() {
 	frontIdentificationFile.InitFromBytes(pngBuf.Bytes(), "frontIdentificationFile.png")
 	backIdentificationFile.InitFromBytes(jpgBuf.Bytes(), "backIdentificationFile.jpg")
 
-	requestParams := auth.PostAuthValidateSignUpMultipartRequestBody{
+	requestParams := apis.PostAuthValidateSignUpMultipartRequestBody{
 		FirstName: "first_name",
 		LastName: "last_name",
 		Email: "test@example.com",
@@ -113,7 +113,7 @@ func (s *TestAuthServiceSuite) TestValidateSignUp_ValidationErrorWithOptionalFie
 	identificationFile.InitFromBytes(gifBuf.Bytes(), "frontIdentificationFile.gif")
 
 	parsedTime, _ := time.Parse("2006-01-02", "1992-07-07")
-	requestParams := auth.PostAuthValidateSignUpMultipartRequestBody{
+	requestParams := apis.PostAuthValidateSignUpMultipartRequestBody{
 		FirstName: "first_name",
 		LastName: "last_name",
 		Email: "test@example.com",
@@ -140,7 +140,7 @@ func (s *TestAuthServiceSuite) TestValidateSignUp_ValidationErrorWithOptionalFie
 }
 
 func (s *TestAuthServiceSuite) TestSignUp_SuccessRequiredFields() {
-	requestParams := auth.PostAuthSignUpMultipartRequestBody{
+	requestParams := apis.PostAuthSignUpMultipartRequestBody{
 		FirstName: "first_name",
 		LastName: "last_name",
 		Email: "test@example.com",
@@ -177,7 +177,7 @@ func (s *TestAuthServiceSuite) TestSignUp_SuccessWithOptionalFields() {
 	backIdentificationFile.InitFromBytes(jpgBuf.Bytes(), "backIdentificationFile.jpg")
 	parsedTime, _ := time.Parse("2006-01-02", "1992-07-07")
 
-	requestParams := auth.PostAuthSignUpMultipartRequestBody{
+	requestParams := apis.PostAuthSignUpMultipartRequestBody{
 		FirstName: "first_name",
 		LastName: "last_name",
 		Email: "test@example.com",
@@ -211,11 +211,11 @@ func (s *TestAuthServiceSuite) TestSignIn_StatusOK() {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
 
-	requestParams := auth.PostAuthSignInJSONBody{Email: "test@example.com", Password: "password"}
+	requestParams := apis.PostAuthSignInJSONBody{Email: "test@example.com", Password: "password"}
 
 	statusCode, tokenString, err := testAuthService.SignIn(ctx, requestParams)
 
-	assert.Equal(s.T(), int64(http.StatusOK), statusCode)
+	assert.Equal(s.T(), int(http.StatusOK), statusCode)
 	assert.NotNil(s.T(), tokenString)
 	assert.Nil(s.T(), err)
 }
@@ -227,11 +227,11 @@ func (s *TestAuthServiceSuite) TestSignIn_BadRequest() {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
 
-	requestParams := auth.PostAuthSignInJSONBody{Email: "test_@example.com", Password: "password"}
+	requestParams := apis.PostAuthSignInJSONBody{Email: "test_@example.com", Password: "password"}
 
 	statusCode, tokenString, err := testAuthService.SignIn(ctx, requestParams)
 
-	assert.Equal(s.T(), int64(http.StatusBadRequest), statusCode)
+	assert.Equal(s.T(), int(http.StatusBadRequest), statusCode)
 	assert.Equal(s.T(), "", tokenString)
 	assert.Equal(s.T(), "メールアドレスまたはパスワードに該当するユーザが存在しません。", err.Error())
 }
