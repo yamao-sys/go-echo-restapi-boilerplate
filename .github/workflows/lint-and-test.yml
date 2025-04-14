@@ -90,7 +90,7 @@ jobs:
         run: echo "$HOME/go/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
-        working-directory: ./api-server
+        working-directory: ./api_server/app
         if: ${{ steps.cache-go-tools.outputs.cache-hit != 'true' }}
         run: |
           go install github.com/rubenv/sql-migrate/...@latest
