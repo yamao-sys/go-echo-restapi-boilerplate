@@ -1,0 +1,440 @@
+openapi: 3.1.0
+info:
+  title: auth
+  version: '1.0'
+  summary: ''
+  description: APIs
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /auth/validateSignUp:
+    post:
+      summary: Validate SignUp
+      responses:
+        '200':
+          $ref: '#/components/responses/SignUpResponse'
+        '400':
+          $ref: '#/components/responses/SignUpResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: post-auth-validate_sign_up
+      requestBody:
+        $ref: '#/components/requestBodies/SignUpInput'
+      description: validate sign up
+      security: []
+      tags:
+        - auth
+  /auth/signUp:
+    post:
+      summary: SignUp
+      responses:
+        '200':
+          $ref: '#/components/responses/SignUpResponse'
+        '400':
+          $ref: '#/components/responses/SignUpResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: post-auth-sign_up
+      requestBody:
+        $ref: '#/components/requestBodies/SignUpInput'
+      security: []
+      tags:
+        - auth
+  /auth/signIn:
+    post:
+      summary: Sign In
+      responses:
+        '200':
+          $ref: '#/components/responses/SignInOkResponse'
+        '400':
+          $ref: '#/components/responses/SignInBadRequestResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: post-auth-sign_in
+      requestBody:
+        $ref: '#/components/requestBodies/SignInInput'
+      security: []
+      tags:
+        - auth
+  /auth/csrf:
+    get:
+      summary: Get Csrf
+      responses:
+        '200':
+          $ref: '#/components/responses/CsrfResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: get-auth-csrf
+      security: []
+      tags:
+        - auth
+  /todos:
+    post:
+      summary: Create Todo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/StoreTodoResponse'
+        '400':
+          $ref: '#/components/responses/StoreTodoResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: post-todos
+      requestBody:
+        $ref: '#/components/requestBodies/StoreTodoInput'
+      description: Create Todo Schema
+      tags:
+        - todos
+    get:
+      summary: Fetch Todos
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/FetchTodosResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: get-todos
+      description: Fetch Todos Schema
+      tags:
+        - todos
+  '/todos/{id}':
+    get:
+      summary: Show Todo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/ShowTodoResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: get-todo
+      description: Show Todo Schema
+      tags:
+        - todos
+    patch:
+      summary: Update Todo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/StoreTodoResponse'
+        '400':
+          $ref: '#/components/responses/StoreTodoResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: patch-todo
+      requestBody:
+        $ref: '#/components/requestBodies/StoreTodoInput'
+      description: Update Todo Schema
+      tags:
+        - todos
+    delete:
+      summary: Delete Todo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/DeleteTodoResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      operationId: delete-todo
+      description: Delete Todo Schema
+      tags:
+        - todos
+    parameters:
+      - schema:
+          type: string
+        in: path
+        name: id
+        required: true
+components:
+  securitySchemes:
+    cookieAuth:
+      name: token
+      type: apiKey
+      in: cookie
+  schemas:
+    SignUpValidationError:
+      title: SignUpValidationError
+      type: object
+      properties:
+        firstName:
+          type: array
+          items:
+            type: string
+        lastName:
+          type: array
+          items:
+            type: string
+        email:
+          type: array
+          items:
+            type: string
+        password:
+          type: array
+          items:
+            type: string
+        birthday:
+          type: array
+          items:
+            type: string
+        frontIdentification:
+          type: array
+          items:
+            type: string
+        backIdentification:
+          type: array
+          items:
+            type: string
+    Todo:
+      title: Todo Object
+      type: object
+      required:
+        - id
+        - title
+        - content
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+    StoreTodoValidationError:
+      title: StoreTodoValidationError
+      type: object
+      properties:
+        title:
+          type: array
+          items:
+            type: string
+        content:
+          type: array
+          items:
+            type: string
+  requestBodies:
+    SignUpInput:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - firstName
+              - lastName
+              - email
+              - password
+            properties:
+              firstName:
+                type: string
+              lastName:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              birthday:
+                type: string
+                format: date
+              frontIdentification:
+                type: string
+                format: binary
+              backIdentification:
+                type: string
+                format: binary
+      description: SignUp  Iuput
+    SignInInput:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      description: SignIn  Input
+    StoreTodoInput:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - title
+              - content
+            properties:
+              title:
+                type: string
+              content:
+                type: string
+      description: Todo Iuput
+  responses:
+    SignUpResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - errors
+            properties:
+              code:
+                type: integer
+              errors:
+                type: object
+                $ref: '#/components/schemas/SignUpValidationError'
+    SignInOkResponse:
+      description: SignIn Response
+      content:
+        application/json:
+          schema:
+            type: object
+      headers:
+        Set-Cookie:
+          schema:
+            type: string
+    SignInBadRequestResponse:
+      description: SignIn BadRequest Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - errors
+            properties:
+              errors:
+                type: array
+                items:
+                  type: string
+    CsrfResponse:
+      description: Csrf response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - csrf_token
+            properties:
+              csrf_token:
+                type: string
+    FetchTodosResponse:
+      description: 'Fetch Todos Response'
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - todos
+            properties:
+              todos:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todo'
+    ShowTodoResponse:
+      description: 'Show Todo Response'
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - todo
+            properties:
+              todo:
+                $ref: '#/components/schemas/Todo'
+    StoreTodoResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - errors
+            properties:
+              code:
+                type: integer
+              errors:
+                type: object
+                $ref: '#/components/schemas/StoreTodoValidationError'
+    DeleteTodoResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - result
+            properties:
+              code:
+                type: integer
+              result:
+                type: boolean
+    UnauthorizedErrorResponse:
+      description: Unauthorized Error Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+              message:
+                type: string
+    NotFoundErrorResponse:
+      description: Not Found Error Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+              message:
+                type: string
+    InternalServerErrorResponse:
+      description: Internal Server Error Response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+              message:
+                type: string
+tags:
+  - name: auth
+    description: auth endpoint
+  - name: business matching app
+    description: business matching app
