@@ -122,6 +122,7 @@ jobs:
         working-directory: ./api_server
         run: make test-ci
 
-      - name: Build
-        working-directory: ./api_server
-        run: go build -v ./...
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
