@@ -14,7 +14,7 @@ test-local:
 
 test-ci:
 	cd db && godotenv -f /app/.env.test sql-migrate up -env="mysql" && cd ..
-	godotenv -f /app/.env.test go test -v ./... -p 1  -shuffle=on
+	godotenv -f /app/.env.test go test -v ./... -p 1  -shuffle=on -coverprofile=coverage.txt
 
 prepare-sqlboiler:
 	@go get -u github.com/tiendc/sqlboiler-extensions@$(BOIL_EXT_VER)
