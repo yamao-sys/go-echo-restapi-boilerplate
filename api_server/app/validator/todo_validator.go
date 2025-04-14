@@ -1,12 +1,12 @@
 package validator
 
 import (
-	"app/generated/todos"
+	apis "app/openapi"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func ValidateCreateTodo(input todos.PostTodosJSONRequestBody) error {
+func ValidateCreateTodo(input apis.PostTodosJSONRequestBody) error {
 	return validation.ValidateStruct(&input,
 		validation.Field(
 			&input.Title,
@@ -16,7 +16,7 @@ func ValidateCreateTodo(input todos.PostTodosJSONRequestBody) error {
 	)
 }
 
-func ValidateUpdateTodo(input  todos.PatchTodoJSONRequestBody) error {
+func ValidateUpdateTodo(input  apis.PatchTodoJSONRequestBody) error {
 	return validation.ValidateStruct(&input,
 		validation.Field(
 			&input.Title,
