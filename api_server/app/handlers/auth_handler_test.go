@@ -1,9 +1,8 @@
-package controllers
+package handlers
 
 import (
-	"app/generated/auth"
 	models "app/models/generated"
-	"app/services"
+	apis "app/openapi"
 	"app/test/factories"
 	"bytes"
 	"encoding/json"
@@ -22,34 +21,24 @@ import (
 	"github.com/oapi-codegen/testutil"
 )
 
-var (
-	testAuthController AuthController
-)
-
-type TestAuthControllerSuite struct {
+type TestAuthHandlerSuite struct {
 	WithDBSuite
 }
 
-func (s *TestAuthControllerSuite) SetupTest() {
+func (s *TestAuthHandlerSuite) SetupTest() {
 	s.SetDBCon()
 
-	authService := services.NewAuthService(DBCon)
-
-	// NOTE: テスト対象のコントローラを設定
-	testAuthController = NewAuthController(authService)
-
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
+	s.initializeHandlers()
 
 	// NOTE: CSRFトークンのセット
 	s.SetCsrfHeaderValues()
 }
 
-func (s *TestAuthControllerSuite) TearDownTest() {
+func (s *TestAuthHandlerSuite) TearDownTest() {
 	s.CloseDB()
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_SuccessRequiredFields() {
+func (s *TestAuthHandlerSuite) TestPostAuthValidateSignUp_SuccessRequiredFields() {
 	body := new(bytes.Buffer)
 	// NOTE: フォームデータを作成する
 	mw := multipart.NewWriter(body)
@@ -66,22 +55,19 @@ func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_SuccessRequiredFiel
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
 	result := testutil.NewRequest().Post("/auth/validateSignUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
-	var res auth.SignUpResponseJSONResponse
+	var res apis.SignUpResponseJSONResponse
 	err := result.UnmarshalBodyToObject(&res)
 	assert.NoError(s.T(), err, "error unmarshaling response")
 	
-	assert.Equal(s.T(), int64(http.StatusOK), res.Code)
+	assert.Equal(s.T(), int(http.StatusOK), res.Code)
 	jsonErrors, _ := json.Marshal(res.Errors)
 	assert.Equal(s.T(), "{}", string(jsonErrors))
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_ValidationErrorRequiredFields() {
+func (s *TestAuthHandlerSuite) TestPostAuthValidateSignUp_ValidationErrorRequiredFields() {
 	body := new(bytes.Buffer)
 	// NOTE: フォームデータを作成する
 	mw := multipart.NewWriter(body)
@@ -98,24 +84,21 @@ func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_ValidationErrorRequ
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
 	result := testutil.NewRequest().Post("/auth/validateSignUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
-	var res auth.SignUpResponseJSONResponse
+	var res apis.SignUpResponseJSONResponse
 	err := result.UnmarshalBodyToObject(&res)
 	assert.NoError(s.T(), err, "error unmarshaling response")
 	
-	assert.Equal(s.T(), int64(http.StatusOK), res.Code)
+	assert.Equal(s.T(), int(http.StatusOK), res.Code)
 	assert.Equal(s.T(), &[]string{"名は必須入力です。"}, res.Errors.FirstName)
 	assert.Equal(s.T(), &[]string{"姓は必須入力です。"}, res.Errors.LastName)
 	assert.Equal(s.T(), &[]string{"Emailは必須入力です。"}, res.Errors.Email)
 	assert.Equal(s.T(), &[]string{"パスワードは必須入力です。"}, res.Errors.Password)
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_SuccessWithOptionalFields() {
+func (s *TestAuthHandlerSuite) TestPostAuthValidateSignUp_SuccessWithOptionalFields() {
 	body := new(bytes.Buffer)
 	// NOTE: フォームデータを作成する
 	mw := multipart.NewWriter(body)
@@ -145,22 +128,19 @@ func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_SuccessWithOptional
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
 	result := testutil.NewRequest().Post("/auth/validateSignUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
-	var res auth.SignUpResponseJSONResponse
+	var res apis.SignUpResponseJSONResponse
 	err := result.UnmarshalBodyToObject(&res)
 	assert.NoError(s.T(), err, "error unmarshaling response")
 	
-	assert.Equal(s.T(), int64(http.StatusOK), res.Code)
+	assert.Equal(s.T(), int(http.StatusOK), res.Code)
 	jsonErrors, _ := json.Marshal(res.Errors)
 	assert.Equal(s.T(), "{}", string(jsonErrors))
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_ValidationErrorWithOptionalFields() {
+func (s *TestAuthHandlerSuite) TestPostAuthValidateSignUp_ValidationErrorWithOptionalFields() {
 	body := new(bytes.Buffer)
 	// NOTE: フォームデータを作成する
 	mw := multipart.NewWriter(body)
@@ -188,22 +168,19 @@ func (s *TestAuthControllerSuite) TestPostAuthValidateSignUp_ValidationErrorWith
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
 	result := testutil.NewRequest().Post("/auth/validateSignUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
-	var res auth.SignUpResponseJSONResponse
+	var res apis.SignUpResponseJSONResponse
 	err := result.UnmarshalBodyToObject(&res)
 	assert.NoError(s.T(), err, "error unmarshaling response")
 	
-	assert.Equal(s.T(), int64(http.StatusOK), res.Code)
+	assert.Equal(s.T(), int(http.StatusOK), res.Code)
 	assert.Equal(s.T(), &[]string{"身分証明書(表)の拡張子はwebp, png, jpegのいずれかでお願いします。"}, res.Errors.FrontIdentification)
 	assert.Equal(s.T(), &[]string{"身分証明書(裏)の拡張子はwebp, png, jpegのいずれかでお願いします。"}, res.Errors.BackIdentification)
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessRequiredFields() {
+func (s *TestAuthHandlerSuite) TestPostAuthSignUp_SuccessRequiredFields() {
 	body := new(bytes.Buffer)
 	// NOTE: フォームデータを作成する
 	mw := multipart.NewWriter(body)
@@ -219,17 +196,15 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessRequiredFields() {
 
 	// NOTE: 終了メッセージを書く
 	mw.Close()
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
 
 	result := testutil.NewRequest().Post("/auth/signUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
-	var res auth.SignUpResponseJSONResponse
+	var res apis.SignUpResponseJSONResponse
 	err := result.UnmarshalBodyToObject(&res)
 	assert.NoError(s.T(), err, "error unmarshaling response")
 	
-	assert.Equal(s.T(), int64(http.StatusOK), res.Code)
+	assert.Equal(s.T(), int(http.StatusOK), res.Code)
 	jsonErrors, _ := json.Marshal(res.Errors)
 	assert.Equal(s.T(), "{}", string(jsonErrors))
 
@@ -246,7 +221,7 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessRequiredFields() {
 	assert.Equal(s.T(), "", user.BackIdentification)
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithOptionalFields() {
+func (s *TestAuthHandlerSuite) TestPostAuthSignUp_SuccessWithOptionalFields() {
 	body := new(bytes.Buffer)
 	// NOTE: フォームデータを作成する
 	mw := multipart.NewWriter(body)
@@ -276,17 +251,14 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithOptionalFields()
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
 	result := testutil.NewRequest().Post("/auth/signUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
-	var res auth.SignUpResponseJSONResponse
+	var res apis.SignUpResponseJSONResponse
 	err := result.UnmarshalBodyToObject(&res)
 	assert.NoError(s.T(), err, "error unmarshaling response")
 	
-	assert.Equal(s.T(), int64(http.StatusOK), res.Code)
+	assert.Equal(s.T(), int(http.StatusOK), res.Code)
 	jsonErrors, _ := json.Marshal(res.Errors)
 	assert.Equal(s.T(), "{}", string(jsonErrors))
 
@@ -303,7 +275,7 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithOptionalFields()
 	assert.Equal(s.T(), "users/"+id+"/backIdentificationFile.jpg", user.BackIdentification)
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithEmptyBirthday() {
+func (s *TestAuthHandlerSuite) TestPostAuthSignUp_SuccessWithEmptyBirthday() {
 	body := new(bytes.Buffer)
 	// NOTE: フォームデータを作成する
 	mw := multipart.NewWriter(body)
@@ -333,17 +305,14 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithEmptyBirthday() 
 	// NOTE: 終了メッセージを書く
 	mw.Close()
 
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
 	result := testutil.NewRequest().Post("/auth/signUp").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithBody(body.Bytes()).WithContentType(mw.FormDataContentType()).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), http.StatusOK, result.Code())
 
-	var res auth.SignUpResponseJSONResponse
+	var res apis.SignUpResponseJSONResponse
 	err := result.UnmarshalBodyToObject(&res)
 	assert.NoError(s.T(), err, "error unmarshaling response")
 	
-	assert.Equal(s.T(), int64(http.StatusOK), res.Code)
+	assert.Equal(s.T(), int(http.StatusOK), res.Code)
 	jsonErrors, _ := json.Marshal(res.Errors)
 	assert.Equal(s.T(), "{}", string(jsonErrors))
 
@@ -361,17 +330,14 @@ func (s *TestAuthControllerSuite) TestPostAuthSignUp_SuccessWithEmptyBirthday() 
 	assert.Equal(s.T(), "users/"+id+"/backIdentificationFile.jpg", user.BackIdentification)
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthSignIn_StatusOk() {
+func (s *TestAuthHandlerSuite) TestPostAuthSignIn_StatusOk() {
 	// NOTE: テスト用ユーザの作成
 	user := factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
 	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
 
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
-	reqBody := auth.SignInInput{
+	reqBody := apis.SignInInput{
 		Email: "test@example.com",
 		Password: "password",
 	}
@@ -382,31 +348,28 @@ func (s *TestAuthControllerSuite) TestPostAuthSignIn_StatusOk() {
 	assert.NotEmpty(s.T(), cookieString)
 }
 
-func (s *TestAuthControllerSuite) TestPostAuthSignIn_BadRequest() {
+func (s *TestAuthHandlerSuite) TestPostAuthSignIn_BadRequest() {
 	// NOTE: テスト用ユーザの作成
 	user := factories.UserFactory.MustCreateWithOption(map[string]interface{}{"Email": "test@example.com"}).(*models.User)
 	if err := user.Insert(ctx, DBCon, boil.Infer()); err != nil {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
 
-	strictHandler := auth.NewStrictHandler(testAuthController, nil)
-	auth.RegisterHandlers(e, strictHandler)
-
-	reqBody := auth.SignInInput{
+	reqBody := apis.SignInInput{
 		Email: "test_@example.com",
 		Password: "password",
 	}
 	result := testutil.NewRequest().Post("/auth/signIn").WithHeader("Cookie", csrfTokenCookie).WithHeader(echo.HeaderXCSRFToken, csrfToken).WithJsonBody(reqBody).GoWithHTTPHandler(s.T(), e)
 	assert.Equal(s.T(), int(http.StatusBadRequest), result.Code())
 
-	var res auth.SignInBadRequestResponse
+	var res apis.SignInBadRequestResponse
 	err := result.UnmarshalBodyToObject(&res)
 	assert.NoError(s.T(), err, "error unmarshaling response")
 
 	assert.Equal(s.T(), []string{"メールアドレスまたはパスワードに該当するユーザが存在しません。"}, res.Errors)
 }
 
-func TestAuthController(t *testing.T) {
+func TestAuthHandler(t *testing.T) {
 	// テストスイートを実施
-	suite.Run(t, new(TestAuthControllerSuite))
+	suite.Run(t, new(TestAuthHandlerSuite))
 }

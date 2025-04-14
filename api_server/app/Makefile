@@ -27,7 +27,7 @@ gen-models:
  		--templates $(GOPATH)/pkg/mod/github.com/tiendc/sqlboiler-extensions@$(BOIL_EXT_VER)/templates/boilv4/mysql
 
 gen-schema:
-	@oapi-codegen -config oapi_codegen_config.yaml -package ${DOMAIN} openapi/${DOMAIN}/${DOMAIN}.yaml > generated/${DOMAIN}/${DOMAIN}.go
+	@oapi-codegen -config oapi_codegen_config.yaml -package apis openapi/reference.yaml > openapi/reference.go
 
 run-test-mysql:
 	@go run $(PWD)/main/mysql/...

@@ -1,9 +1,11 @@
-package controllers
+package handlers
 
 import (
 	"app/db"
-	"app/generated/auth"
+	"app/middlewares"
 	models "app/models/generated"
+	apis "app/openapi"
+	"app/services"
 	"app/test/factories"
 	"app/utils/routers"
 	"context"
@@ -63,7 +65,7 @@ func (s *WithDBSuite) SignIn() {
 		s.T().Fatalf("failed to create test user %v", err)
 	}
 	
-	reqBody := auth.SignInInput{
+	reqBody := apis.SignInInput{
 		Email: "test@example.com",
 		Password: "password",
 	}
@@ -74,7 +76,7 @@ func (s *WithDBSuite) SignIn() {
 func (s *WithDBSuite) SetCsrfHeaderValues() {
 	result := testutil.NewRequest().Get("/auth/csrf").GoWithHTTPHandler(s.T(), e)
 
-	var res auth.GetAuthCsrf200JSONResponse
+	var res apis.GetAuthCsrf200JSONResponse
 	err := result.UnmarshalJsonToObject(&res)
 	if err != nil {
 		s.T().Error(err.Error())
@@ -82,4 +84,17 @@ func (s *WithDBSuite) SetCsrfHeaderValues() {
 
 	csrfToken = res.CsrfToken
 	csrfTokenCookie = result.Recorder.Result().Header.Values("Set-Cookie")[0]
+}
+
+func (s *WithDBSuite) initializeHandlers() {
+	authService := services.NewAuthService(DBCon)
+	testAuthHandler := NewAuthHandler(authService)
+
+	todoService := services.NewTodoService(DBCon)
+	testTodosHandler := NewTodosHandler(todoService)
+
+	mainHandler := NewMainHandler(testAuthHandler, testTodosHandler)
+
+	strictHandler := apis.NewStrictHandler(mainHandler, []apis.StrictMiddlewareFunc{middlewares.AuthMiddleware})
+	apis.RegisterHandlers(e, strictHandler)
 }

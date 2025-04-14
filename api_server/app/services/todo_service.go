@@ -1,8 +1,8 @@
 package services
 
 import (
-	"app/generated/todos"
 	models "app/models/generated"
+	apis "app/openapi"
 	"app/validator"
 	"context"
 	"database/sql"
@@ -14,11 +14,11 @@ import (
 )
 
 type TodoService interface {
-	CreateTodo(ctx context.Context, requestParams todos.PostTodosJSONRequestBody, userID int64) (statusCode int64, err error)
-	FetchTodosList(ctx context.Context, userID int64) (statusCode int64, todosList *models.TodoSlice, err error)
-	ShowTodo(ctx context.Context, id int64, userID int64) (statusCode int64, todo *models.Todo)
-	UpdateTodo(ctx context.Context, id int64, requestParams todos.PatchTodoJSONRequestBody, userID int64) (statusCode int64, err error)
-	DeleteTodo(ctx context.Context, id int64, userID int64) (statusCode int64, err error)
+	CreateTodo(ctx context.Context, requestParams apis.PostTodosJSONRequestBody, userID int64) (statusCode int, err error)
+	FetchTodosList(ctx context.Context, userID int64) (statusCode int, todosList *models.TodoSlice, err error)
+	ShowTodo(ctx context.Context, id int64, userID int64) (statusCode int, todo *models.Todo)
+	UpdateTodo(ctx context.Context, id int64, requestParams apis.PatchTodoJSONRequestBody, userID int64) (statusCode int, err error)
+	DeleteTodo(ctx context.Context, id int64, userID int64) (statusCode int, err error)
 }
 
 type todoService struct {
@@ -29,11 +29,11 @@ func NewTodoService(db *sql.DB) TodoService {
 	return &todoService{db}
 }
 
-func (ts *todoService) CreateTodo(ctx context.Context, requestParams todos.PostTodosJSONRequestBody, userID int64) (statusCode int64, err error) {
+func (ts *todoService) CreateTodo(ctx context.Context, requestParams apis.PostTodosJSONRequestBody, userID int64) (statusCode int, err error) {
 	// NOTE: バリデーションチェック
 	validationErrors := validator.ValidateCreateTodo(requestParams)
 	if validationErrors != nil {
-		return int64(http.StatusBadRequest), validationErrors
+		return int(http.StatusBadRequest), validationErrors
 	}
 
 	todo := &models.Todo{}
@@ -43,21 +43,21 @@ func (ts *todoService) CreateTodo(ctx context.Context, requestParams todos.PostT
 	// NOTE: Create処理
 	err = todo.Insert(ctx, ts.db, boil.Infer())
 	if err != nil {
-		return int64(http.StatusInternalServerError), err
+		return int(http.StatusInternalServerError), err
 	}
-	return int64(http.StatusOK), nil
+	return int(http.StatusOK), nil
 }
 
-func (ts *todoService) FetchTodosList(ctx context.Context, userID int64) (statusCode int64, todosList *models.TodoSlice, err error) {
+func (ts *todoService) FetchTodosList(ctx context.Context, userID int64) (statusCode int, todosList *models.TodoSlice, err error) {
 	todos, err := models.Todos(qm.Where("user_id = ?", userID)).All(ctx, ts.db)
 	if err != nil {
-		return int64(http.StatusInternalServerError), &models.TodoSlice{}, err
+		return int(http.StatusInternalServerError), &models.TodoSlice{}, err
 	}
 
-	return int64(http.StatusOK), &todos, nil
+	return int(http.StatusOK), &todos, nil
 }
 
-func (ts *todoService) ShowTodo(ctx context.Context, id int64, userID int64) (statusCode int64, todo *models.Todo) {
+func (ts *todoService) ShowTodo(ctx context.Context, id int64, userID int64) (statusCode int, todo *models.Todo) {
 	todo, err := models.Todos(qm.Where("id = ? AND user_id = ?", id, userID)).One(ctx, ts.db)
 	if err != nil {
 		return http.StatusNotFound, &models.Todo{}
@@ -66,7 +66,7 @@ func (ts *todoService) ShowTodo(ctx context.Context, id int64, userID int64) (st
 	return http.StatusOK, todo
 }
 
-func (ts *todoService) UpdateTodo(ctx context.Context, id int64, requestParams todos.PatchTodoJSONRequestBody, userID int64) (statusCode int64, err error) {
+func (ts *todoService) UpdateTodo(ctx context.Context, id int64, requestParams apis.PatchTodoJSONRequestBody, userID int64) (statusCode int, err error) {
 	todo, err := models.Todos(qm.Where("id = ? AND user_id = ?", id, userID)).One(ctx, ts.db)
 	if err != nil {
 		return http.StatusNotFound, err
@@ -75,7 +75,7 @@ func (ts *todoService) UpdateTodo(ctx context.Context, id int64, requestParams t
 	// NOTE: バリデーションチェック
 	validationErrors := validator.ValidateUpdateTodo(requestParams)
 	if validationErrors != nil {
-		return int64(http.StatusBadRequest), validationErrors
+		return int(http.StatusBadRequest), validationErrors
 	}
 
 	todo.Title = requestParams.Title
@@ -89,7 +89,7 @@ func (ts *todoService) UpdateTodo(ctx context.Context, id int64, requestParams t
 	return http.StatusOK, nil
 }
 
-func (ts *todoService) DeleteTodo(ctx context.Context, id int64, userID int64) (statusCode int64, err error) {
+func (ts *todoService) DeleteTodo(ctx context.Context, id int64, userID int64) (statusCode int, err error) {
 	todo, err := models.Todos(qm.Where("id = ? AND user_id = ?", id, userID)).One(ctx, ts.db)
 	if err != nil {
 		return http.StatusNotFound, err

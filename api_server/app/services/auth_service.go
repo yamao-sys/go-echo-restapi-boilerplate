@@ -1,8 +1,8 @@
 package services
 
 import (
-	"app/generated/auth"
 	models "app/models/generated"
+	apis "app/openapi"
 	"app/validator"
 	"context"
 	"database/sql"
@@ -23,9 +23,9 @@ import (
 )
 
 type AuthService interface {
-	ValidateSignUp(ctx context.Context, request *auth.PostAuthValidateSignUpMultipartRequestBody) error
-	SignUp(ctx context.Context, requestParams auth.PostAuthSignUpMultipartRequestBody) error
-	SignIn(ctx context.Context, requestParams auth.PostAuthSignInJSONBody) (statusCode int64, tokenString string, error error)
+	ValidateSignUp(ctx context.Context, request *apis.PostAuthValidateSignUpMultipartRequestBody) error
+	SignUp(ctx context.Context, requestParams apis.PostAuthSignUpMultipartRequestBody) error
+	SignIn(ctx context.Context, requestParams apis.PostAuthSignInJSONBody) (statusCode int, tokenString string, error error)
 	// GetAuthUser(ctx echo.Context) (*models.User, error)
 	// Getuser(ctx context.Context, id int) *models.User
 }
@@ -38,11 +38,11 @@ func NewAuthService(db *sql.DB) AuthService {
 	return &authService{db}
 }
 
-func (as *authService) ValidateSignUp(ctx context.Context, request *auth.PostAuthValidateSignUpMultipartRequestBody) error {
+func (as *authService) ValidateSignUp(ctx context.Context, request *apis.PostAuthValidateSignUpMultipartRequestBody) error {
 	return validator.ValidateSignUp(request)
 }
 
-func (as *authService) SignUp(ctx context.Context, requestParams auth.PostAuthSignUpMultipartRequestBody) error {
+func (as *authService) SignUp(ctx context.Context, requestParams apis.PostAuthSignUpMultipartRequestBody) error {
 	user := models.User{}
 	user.FirstName = requestParams.FirstName
 	user.LastName = requestParams.LastName
@@ -101,7 +101,7 @@ func (as *authService) SignUp(ctx context.Context, requestParams auth.PostAuthSi
 	return updateIdenfiticationErr
 }
 
-func (as *authService) SignIn(ctx context.Context, requestParams auth.PostAuthSignInJSONBody) (statusCode int64, tokenString string, error error) {
+func (as *authService) SignIn(ctx context.Context, requestParams apis.PostAuthSignInJSONBody) (statusCode int, tokenString string, error error) {
 	// NOTE: emailからの取得
 	user, err := models.Users(qm.Where("email = ?", requestParams.Email)).One(ctx, as.db)
 	if err != nil {
