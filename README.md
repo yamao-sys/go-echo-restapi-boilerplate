@@ -25,7 +25,7 @@ Go Echo の REST API のボイラープレート
 | ---------------------- | ------------- | -------------------- | -------- |
 | 会員登録バリデーション | POST          | /auth/validateSignUp | 権限なし |
 | 会員登録               | POST          | /auth/signUp         | 権限なし |
-| ログイン               | POST          | /auth/signIn        | 権限なし |
+| ログイン               | POST          | /auth/signIn         | 権限なし |
 
 ### TODO リスト
 
@@ -102,20 +102,12 @@ make gen-models
 
 ## openapi からスキーマの型生成
 
-openapi 配下にドメインに応じたパスでスキーマを作成する
-
-```
-例) todos
-
-- api_server/app/openapi
-  - todos
-    - todo.yaml
-```
+openapi/reference.yaml にスキーマを作成する
 
 スキーマを生成したら Go の API のボイラーコードと型ファイルを生成する
 
 ```
-make gen-schema DOMAIN=todos
+make gen-schema
 ```
 
 ## 設計方針
@@ -138,10 +130,13 @@ make gen-schema DOMAIN=todos
   - 事故があるとまずい機能については、C2 カバレッジで書いても良さそう
 
 ## テスト実行
-### テスト用DBの作成・マイグレーション
-dbコンテナのホストにログインし、DB名`go_echo_restapi_boilerplate_test`で作成する
+
+### テスト用 DB の作成・マイグレーション
+
+db コンテナのホストにログインし、DB 名`go_echo_restapi_boilerplate_test`で作成する
 
 ### テスト実行
+
 api_server コンテナに入った上で、以下のコマンドを実行
 
 ```
