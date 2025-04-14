@@ -3,7 +3,7 @@ name: Golang Lint And Test
 on:
   pull_request:
     paths:
-      - 'api_server/app/**/*.go'
+      - 'api_server/**/*.go'
       - '.github/workflows/lint-and-test.yml'
   push:
     branches:
@@ -21,12 +21,12 @@ jobs:
         uses: actions/setup-go@v4
         id: setup-go-lint
         with:
-          go-version-file: ./api_server/app/go.mod
+          go-version-file: ./api_server/go.mod
           cache: true
-          cache-dependency-path: ./api_server/app/go.sum
+          cache-dependency-path: ./api_server/go.sum
 
       - name: go mod tidy
-        working-directory: ./api_server/app
+        working-directory: ./api_server
         if: ${{ steps.setup-go-lint.outputs.cache-hit != 'true' }}
         run: go mod tidy
 
@@ -43,7 +43,7 @@ jobs:
       - name: lint
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ steps.generate_token.outputs.token }}
-        working-directory: ./api_server/app
+        working-directory: ./api_server
         run: go install honnef.co/go/tools/cmd/staticcheck@latest && staticcheck ./... | reviewdog -reporter=github-pr-review -f=staticcheck -level=warn -filter-mode=nofilter -fail-level=any
 
   Test:
@@ -68,9 +68,9 @@ jobs:
         uses: actions/setup-go@v4
         id: setup-go-test
         with:
-          go-version-file: ./api_server/app/go.mod
+          go-version-file: ./api_server/go.mod
           cache: true
-          cache-dependency-path: ./api_server/app/go.sum
+          cache-dependency-path: ./api_server/go.sum
 
       - name: Cache Go tools
         uses: actions/cache@v4
@@ -81,7 +81,7 @@ jobs:
           key: go-tools-${{ runner.os }}-${{ hashFiles('go.mod') }}-tools
 
       - name: go mod tidy
-        working-directory: ./api_server/app
+        working-directory: ./api_server
         if: ${{ steps.setup-go-test.outputs.cache-hit != 'true' }}
         run: go mod tidy
 
@@ -90,7 +90,7 @@ jobs:
         run: echo "$HOME/go/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
-        working-directory: ./api_server/app
+        working-directory: ./api_server
         if: ${{ steps.cache-go-tools.outputs.cache-hit != 'true' }}
         run: |
           go install github.com/rubenv/sql-migrate/...@latest
@@ -99,10 +99,10 @@ jobs:
       - name: Copy env file
         run: |
           sudo mkdir /app
-          sudo cp api_server/app/.env.test /app/.env.test
+          sudo cp api_server/.env.test /app/.env.test
 
       - name: Prepare storage directory
-        working-directory: ./api_server/app
+        working-directory: ./api_server
         run: mkdir data/ && mkdir data/go_echo_restapi_boilerplate_test
 
       - name: Set up google cloud server
@@ -110,7 +110,7 @@ jobs:
         with:
           version: '1.37.2'
           backend: memory
-          data: './api_server/app/data'
+          data: './api_server/data'
           public-host: 'gcs:4443'
           external-url: 'http://gcs:4443'
           scheme: http
@@ -119,9 +119,9 @@ jobs:
         run: echo "127.0.0.1 gcs" | sudo tee -a /etc/hosts
 
       - name: test
-        working-directory: ./api_server/app
+        working-directory: ./api_server
         run: make test-ci
 
       - name: Build
-        working-directory: ./api_server/app
+        working-directory: ./api_server
         run: go build -v ./...
